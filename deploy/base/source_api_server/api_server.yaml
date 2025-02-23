@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: olist-api-server
+spec:
+  containers:
+    - name: olist-api
+      image: localhost:5000/olist_api:0.5
+  imagePullSecrets:
+    - name: registry-secret
