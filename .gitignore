@@ -1,3 +1,4 @@
 ## Ignore Files
 
 values.yaml
+.env
