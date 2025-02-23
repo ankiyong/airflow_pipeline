@@ -1,3 +1,5 @@
 ## Ignore Files
 
 values.yaml
+.env
+charts
