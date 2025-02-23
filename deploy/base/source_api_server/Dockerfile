@@ -12,6 +12,7 @@ RUN apt update \
 RUN mkdir app
 WORKDIR /app
 COPY requirements.txt .
+COPY .env .
 RUN pip3 install --no-cache-dir -r requirements.txt
 
 COPY *.py .
