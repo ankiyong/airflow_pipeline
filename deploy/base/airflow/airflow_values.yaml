@@ -7,7 +7,7 @@ logs:
 dags:
   gitSync:
     enabled: true
-    repo: https://github.com/ankiyong/seoul_traffic.git
+    repo: https://github.com/ankiyong/data_streaming.git
     branch: main
     rev: HEAD
     depth: 1
