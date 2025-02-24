@@ -3,7 +3,7 @@ from airflow.operators.bash import BashOperator
 from airflow.operators.python_operator import PythonOperator
 from airflow.models.variable import Variable
 from airflow.utils.dates import days_ago
-from airflow.providers.google.cloud.operators.pubsub import [PubSubPublishOperator](https://www.getorchestra.io/guides/airflow-operator-series-apache-airflow-providers-gcp-pub-sub-example), [PubSubPullOperator](https://www.getorchestra.io/guides/airflow-operator-series-apache-airflow-providers-gcp-pub-sub-example)
+from airflow.providers.google.cloud.operators.pubsub import PubSubPublishOperator,PubSubPullOperator
 import requests,json
 from datetime import datetime, timedelta
 import os
