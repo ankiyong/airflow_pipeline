@@ -2,6 +2,8 @@ from airflow import DAG
 from airflow.operators.bash import BashOperator
 from airflow.operators.python_operator import PythonOperator
 from airflow.models.variable import Variable
+from airflow.utils.dates import days_ago
+from airflow.providers.google.cloud.operators.pubsub import [PubSubPublishOperator](https://www.getorchestra.io/guides/airflow-operator-series-apache-airflow-providers-gcp-pub-sub-example), [PubSubPullOperator](https://www.getorchestra.io/guides/airflow-operator-series-apache-airflow-providers-gcp-pub-sub-example)
 import requests,json
 from datetime import datetime, timedelta
 import os
@@ -47,5 +49,11 @@ with DAG(
         task_id='get-order-data',
         python_callable=get_order_data_after_last_value
     )
-
-t1
+    publish_task = PubSubPublishOperator(
+    task_id='publish_message',
+    project='your-gcp-project-id',
+    topic='your-topic-name',
+    messages=[{'data': b'Hello, World!'}],
+    dag=dag,
+)
+t1 >> publish_task
