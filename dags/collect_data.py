@@ -17,7 +17,7 @@ def get_order_data_after_last_value():
     else:
         with open(last_value_path,encoding="utf-8") as file:
             last_value = file.read()
-    url = f"http://220.70.6.76:8000/orders/id/{last_value}/{last_value+10}"
+    url = f"http://220.70.6.76:8000/orders/id/{int(last_value)}/{int(last_value)+10}"
     with open(last_value_path, "w", encoding="utf-8") as file:
         file.write(last_value+10)
     response = requests.get(url)
