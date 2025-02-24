@@ -51,8 +51,8 @@ with DAG(
     )
     publish_task = PubSubPublishMessageOperator(
     task_id='publish_message',
-    project='your-gcp-project-id',
-    topic='your-topic-name',
+    project='data-streaming-olist',
+    topic='projects/data-streaming-olist/topics/order_data',
     messages=[{'data': b'Hello, World!'}],
     dag=dag,
 )
