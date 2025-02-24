@@ -3,7 +3,7 @@ from airflow.operators.bash import BashOperator
 from airflow.operators.python_operator import PythonOperator
 from airflow.models.variable import Variable
 from airflow.utils.dates import days_ago
-from airflow.providers.google.cloud.operators.pubsub import PubSubPublishOperator,PubSubPullOperator
+from airflow.providers.google.src.airflow.providers.google.cloud.operators.pubsub import PubSubPublishMessageOperator,PubSubPullOperator
 import requests,json
 from datetime import datetime, timedelta
 import os
@@ -49,7 +49,7 @@ with DAG(
         task_id='get-order-data',
         python_callable=get_order_data_after_last_value
     )
-    publish_task = PubSubPublishOperator(
+    publish_task = PubSubPublishMessageOperator(
     task_id='publish_message',
     project='your-gcp-project-id',
     topic='your-topic-name',
