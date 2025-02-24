@@ -16,6 +16,6 @@ def get_db():
     finally:
         db.close()
 
-@app.get("/orders/id/{last_value}", response_model=list[OrderSchema])
-def read_orders_last_value(last_value: int,db: Session=Depends(get_db)):
-    return get_order_after_last_value(db,last_value)
+@app.get("/orders/id/{cur_value}/{last_value}", response_model=list[OrderSchema])
+def read_orders_last_value(cur_value: int,last_value: int,db: Session=Depends(get_db)):
+    return get_order_after_last_value(db,cur_value,last_value)
