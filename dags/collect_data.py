@@ -12,8 +12,8 @@ def get_order_data_after_last_value():
     last_value_path = "/opt/airflow/logs/last_value.txt"
     if not os.path.exists(last_value_path):
         with open(last_value_path, "w", encoding="utf-8") as file:
-            file.write(10)
-            last_value = 10
+            file.write(0)
+            last_value = 0
     else:
         with open(last_value_path,encoding="utf-8") as file:
             last_value = file.read()
@@ -45,8 +45,7 @@ with DAG(
 
     t1 = PythonOperator(
         task_id='get-order-data',
-        python_callable=get_order_data_after_last_value,
-        op_args=[last_value]
+        python_callable=get_order_data_after_last_value
     )
 
 t1
