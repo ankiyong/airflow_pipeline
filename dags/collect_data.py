@@ -32,11 +32,12 @@ def publish_to_pubsub():
     @task
     def publish_data(data):
         for d in data:
+            json_data = json.dumps(d).encode("utf-8")
             publish_task = PubSubPublishMessageOperator(
                 task_id='publish_message',
                 project_id='data-streaming-olist',
                 topic='order_data',
-                messages=[{'data': str(d).encode('utf-8')}]
+                messages=[{'data': json_data}]
             )
             publish_task.execute(context={})
     
