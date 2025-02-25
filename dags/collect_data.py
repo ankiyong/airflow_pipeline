@@ -27,7 +27,6 @@ def get_order_data_after_last_value():
         print("Connect Success")
         return response.json()
     
-
 with DAG(
     'data_pipeline',
     default_args={
@@ -45,7 +44,7 @@ with DAG(
     tags=['example'],
 ) as dag:
 
-    t1 = PythonOperator(
+    get_order_data = PythonOperator(
         task_id='get-order-data',
         python_callable=get_order_data_after_last_value
     )
@@ -53,7 +52,7 @@ with DAG(
     task_id='publish_message',
     project_id='data-streaming-olist',
     topic='order_data',
-    messages=[{'data': b'Hello, World!'}],
+    messages="{{ task_instance.xcom_pull(task_ids='get-order-data', key='return_value') | tojson }}",
     dag=dag,
 )
-t1 >> publish_task
+get_order_data >> publish_task
