@@ -20,7 +20,7 @@ def subscribe_from_pubsub():
     @task
     def subscribe_data():
         subscribe_task = PubSubPullOperator(
-            task_id="sub_message"
+            task_id="sub_message",
             project_id='data-streaming-olist',
             topic='order_data',
             max_messages=10,
