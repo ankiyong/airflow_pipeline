@@ -76,4 +76,3 @@ publish_to_pubsub_dag = publish_to_pubsub()
 
 # data_thread.join()
 # process_thread.join()
-

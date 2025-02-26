@@ -16,7 +16,7 @@ class OrderSchema(BaseModel):
     id: int
 
     class Config:
-        from_attributes = True 
+        from_attributes = True
 
 class ResponseModel(BaseModel):
     orders: List[OrderSchema]

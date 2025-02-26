@@ -40,7 +40,7 @@ def publish_to_pubsub():
                 messages=[{'data': json_data}]
             )
             publish_task.execute(context={})
-    
+
     data = get_order_data_after_last_value()
     publish_data(data)
 
