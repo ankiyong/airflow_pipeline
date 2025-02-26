@@ -8,24 +8,37 @@ from airflow.decorators import task, dag
 from airflow.models import XCom
 # from pyspark.sql import SparkSession
 # from pyspark.sql.functions import from_json,col
-# from datetime import datetime, timedelta
+from datetime import datetime, timedelta
 # import os
 # import json
 # from concurrent.futures import TimeoutError
 # from queue import Queue
 # import threading
 
-@dag(schedule_interval=None,start_date=days_ago(1),catchup=False)
-def subscribe_from_pubsub():
-    @task
-    def subscribe_data():
-        subscribe_task = PubSubPullOperator(
+PROJECT_ID = "data-streaming-olist"
+SUBSCRIPTION_NAME = "order_data-sub"
+
+default_args = {
+    "owner": "airflow",
+    "depends_on_past": False,
+    "start_date": datetime(2024, 2, 25),
+    "retries": 1,
+    "retry_delay": timedelta(minutes=5),
+}
+
+
+dag = DAG(
+    "pubsub_to_spark",
+    default_args=default_args,
+    schedule_interval="@hourly",
+    catchup=False,
+)
+
+subscribe_task = PubSubPullOperator(
             subscription="order_data-sub",
             project_id='data-streaming-olist',
             max_messages=10,
             gcp_conn_id="google_cloud_default"
         )
-        subscribe_task.execute(context={})
-    subscribe_data()
 
-subscribe_dag = subscribe_from_pubsub()
+subscribe_task
