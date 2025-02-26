@@ -35,10 +35,11 @@ dag = DAG(
 )
 
 subscribe_task = PubSubPullOperator(
-            subscription="order_data-sub",
-            project_id='data-streaming-olist',
-            max_messages=10,
-            gcp_conn_id="google_cloud_default"
-        )
+    task_id='subscribe_message',
+    subscription="order_data-sub",
+    project_id='data-streaming-olist',
+    max_messages=10,
+    gcp_conn_id="google_cloud_default"
+)
 
 subscribe_task
