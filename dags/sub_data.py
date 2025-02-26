@@ -52,6 +52,10 @@ def subscribe_from_pubsub():
         data_thread = threading.Thread(target=fetch_data)
         data_thread.start()
 
+    data = get_order_data_after_last_value()
+    publish_data(data)
+
+publish_to_pubsub_dag = publish_to_pubsub()
 # def data_process():
 #     merged_df = ''
 #     while True:
