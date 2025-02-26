@@ -18,3 +18,18 @@ dags:
     sshKeySecret: airflow-git-ssh-secret
     containerName: git-sync
     uid: 65533
+
+airflow:
+  config: 
+    AIRFLOW__WEBSERVER__BASE_URL: "http://aky.dev/airflow/"
+
+ingress:
+  apiVersion: networking.k8s.io/v1
+
+  web:
+    annotations:
+      nginx.ingress.kubernetes.io/rewrite-target: /
+    enabled: true
+    host: "aky.dev"
+    path: "/airflow"
+    ingressClassName: "nginx"
