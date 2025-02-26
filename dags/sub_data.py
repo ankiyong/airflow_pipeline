@@ -26,3 +26,6 @@ def subscribe_from_pubsub():
             max_messages=10,
         )
         subscribe_task.execute(context={})
+    subscribe_data()
+
+subscribe_dag = subscribe_from_pubsub()
