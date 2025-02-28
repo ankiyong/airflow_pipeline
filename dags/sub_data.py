@@ -53,12 +53,12 @@ def process_messages(ti):
         encoded_data = msg['message'].get('data')
         if encoded_data:
             decoded_data = base64.b64decode(encoded_data).decode('utf-8')
-            data.append(json.loads(decoded_data))
+            data.append(decoded_data)
     return data
 
 def save_xcom_to_json(**kwargs):
     ti = kwargs['ti']
-    data = ti.xcom_pull(task_ids="process_message",key="return_values")
+    data = ti.xcom_pull(task_ids="process_message",key="return_value")
     file_path = "/tmp/xcom_data.json"
     with open(file_path,"w") as f:
         json.dump(data,f,indent=4)
@@ -78,16 +78,16 @@ save_to_json=PythonOperator(
     dag=dag
 )
 
-spark_process = SparkKubernetesOperator(
-    task_id="spark-process",
-    trigger_rule="all_success",
-    depends_on_past=True,
-    retries=3,
-    application_file="olist_spark.yaml",
-    namespace="spark-jobs",
-    kubernetes_conn_id="kubernetes-conn-default",
-    do_xcom_push=True,
-    dag=dag
-)
+# spark_process = SparkKubernetesOperator(
+#     task_id="spark-process",
+#     trigger_rule="all_success",
+#     depends_on_past=True,
+#     retries=3,
+#     application_file="olist_spark.yaml",
+#     namespace="spark-jobs",
+#     kubernetes_conn_id="kubernetes-conn-default",
+#     do_xcom_push=True,
+#     dag=dag
+# )
 
 subscribe_task >> process_messages >> save_to_json
