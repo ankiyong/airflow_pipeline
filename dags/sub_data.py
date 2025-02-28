@@ -6,14 +6,14 @@ from airflow.utils.dates import days_ago
 from airflow.providers.google.cloud.operators.pubsub import PubSubPublishMessageOperator,PubSubPullOperator
 from airflow.decorators import task, dag
 from airflow.models import XCom
-# from pyspark.sql import SparkSession
-# from pyspark.sql.functions import from_json,col
+from airflow.providers.cncf.kubernetes.operators.spark_kubernetes import SparkKubernetesOperator
+from airflow.providers.cncf.kubernetes.sensors.spark_kubernetes import SparkKubernetesSensor
+from airflow.models import Variable
+from kubernetes.client import models as k8s
+from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
 from datetime import datetime, timedelta
 import os
 import json,base64
-# from concurrent.futures import TimeoutError
-# from queue import Queue
-# import threading
 
 PROJECT_ID = "data-streaming-olist"
 SUBSCRIPTION_NAME = "order_data-sub"
@@ -43,25 +43,51 @@ subscribe_task = PubSubPullOperator(
 )
 
 def process_messages(ti):
-    messages = ti.xcom_pull(task_ids="subscribe_message")
+    messages = ti.xcom_pull(task_ids="pull_messages")
 
     if not messages:
         print("No messages received.")
         return
-
+    data = []
     for msg in messages:
         encoded_data = msg['message'].get('data')
         if encoded_data:
             decoded_data = base64.b64decode(encoded_data).decode('utf-8')
-            json_data = json.loads(decoded_data)
-            print(json_data)  # 여기에서 JSON 데이터를 저장하거나 처리 가능
+            data.append(json.loads(decoded_data))
+    return data
+
+def save_xcom_to_json(**kwargs):
+    ti = kwargs['ti']
+    data = ti.xcom_pull(task_ids="process_message",key="return_values")
+    file_path = "/tmp/xcom_data.json"
+    with open(file_path,"w") as f:
+        json.dump(data,f,indent=4)
 
 
-save_to_file = PythonOperator(
+process_messages = PythonOperator(
     task_id="save_messages_to_file",
     python_callable=process_messages,
     provide_context=True,
     dag=dag,
 )
 
-subscribe_task >> save_to_file
+save_to_json=PythonOperator(
+    task_id="save_to_json",
+    python_callable=save_xcom_to_json,
+    provide_context=True,
+    dag=dag
+)
+
+spark_process = SparkKubernetesOperator(
+    task_id="spark-process",
+    trigger_rule="all_success",
+    depends_on_past=True,
+    retries=3,
+    application_file="olist_spark.yaml",
+    namespace="spark-jobs",
+    kubernetes_conn_id="kubernetes-conn-default",
+    do_xcom_push=True,
+    dag=dag
+)
+
+subscribe_task >> process_messages >> save_to_json
