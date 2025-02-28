@@ -54,7 +54,7 @@ def process_messages(ti):
         if encoded_data:
             decoded_data = base64.b64decode(encoded_data).decode('utf-8')
             data.append(decoded_data)
-    return data
+    ti.xcom_push(key="return_value",value=data)
 
 def save_xcom_to_json(**kwargs):
     ti = kwargs['ti']
