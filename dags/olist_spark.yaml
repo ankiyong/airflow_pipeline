@@ -1,14 +1,14 @@
 apiVersion: sparkoperator.k8s.io/v1beta2
 kind: SparkApplication
 metadata:
-  name: spark-pi
-  namespace: default
+  name: spark-process
+  namespace: spark-jobs
 spec:
   type: Python
   mode: cluster
   image: spark:3.5.3
   imagePullPolicy: IfNotPresent
-  pythonFile: local:///opt/spark/read_json.py
+  mainApplicationFile: local:///opt/spark/read_json.py
   arguments:
   - "5000"
   sparkVersion: 3.5.3
