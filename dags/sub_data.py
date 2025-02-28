@@ -56,8 +56,7 @@ def process_messages(ti):
             data.append(decoded_data)
     ti.xcom_push(key="return_value",value=data)
 
-def save_xcom_to_json(**kwargs):
-    ti = kwargs['ti']
+def save_xcom_to_json(ti):
     data = ti.xcom_pull(task_ids="save_messages_to_file",key="return_value")
     file_path = "/tmp/xcom_data.json"
     with open(file_path,"w") as f:
