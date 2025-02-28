@@ -1,0 +1,19 @@
+
+controller:
+  volumes:
+  - name: tmp
+    emptyDir:
+      sizeLimit: 1Gi
+  - name: spark-jobs
+    hostPath:
+      type: Directory
+      path: /home/aky/spark-jobs
+  volumeMounts:
+  - name: tmp
+    mountPath: "/tmp"
+    readOnly: false
+  - name: spark-jobs
+    mountPath: "/opt/spark/jobs"
+spark:
+  jobNamespaces:
+  - spark-operator
