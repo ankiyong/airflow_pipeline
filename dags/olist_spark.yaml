@@ -4,12 +4,11 @@ metadata:
   name: spark-pi
   namespace: default
 spec:
-  type: Scala
+  type: Python
   mode: cluster
   image: spark:3.5.3
   imagePullPolicy: IfNotPresent
-  mainClass: org.apache.spark.examples.SparkPi
-  mainApplicationFile: local:///opt/spark/examples/jars/spark-examples.jar
+  pythonFile: local:///opt/spark/read_json.py
   arguments:
   - "5000"
   sparkVersion: 3.5.3
@@ -25,3 +24,6 @@ spec:
     instances: 1
     cores: 1
     memory: 512m
+    volumeMounts:
+      - name: airflow-log-pvc
+        mountPath: /mnt/spark/data

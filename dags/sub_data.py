@@ -58,7 +58,6 @@ def process_messages(ti):
 
 def save_xcom_to_json(ti):
     data = ti.xcom_pull(task_ids="save_messages_to_file",key="return_value")
-    print(data)
     file_path = "/opt/airflow/logs/xcom_data.json"
     with open(file_path,"w") as f:
         json.dump(data,f,indent=4)
@@ -78,16 +77,18 @@ save_to_json=PythonOperator(
     dag=dag
 )
 
-# spark_process = SparkKubernetesOperator(
-#     task_id="spark-process",
-#     trigger_rule="all_success",
-#     depends_on_past=True,
-#     retries=3,
-#     application_file="olist_spark.yaml",
-#     namespace="spark-jobs",
-#     kubernetes_conn_id="kubernetes-conn-default",
-#     do_xcom_push=True,
-#     dag=dag
-# )
 
-subscribe_task >> process_messages >> save_to_json
+
+spark_process = SparkKubernetesOperator(
+    task_id="spark-process",
+    trigger_rule="all_success",
+    depends_on_past=True,
+    retries=3,
+    application_file="olist_spark.yaml",
+    namespace="spark-jobs",
+    kubernetes_conn_id="kubernetes-conn-default",
+    do_xcom_push=True,
+    dag=dag
+)
+
+subscribe_task >> process_messages >> save_to_json >> spark_process
