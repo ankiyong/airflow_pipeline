@@ -81,7 +81,7 @@ save_to_json=PythonOperator(
 
 spark_process = SparkKubernetesOperator(
     task_id="spark-process",
-    depends_on_past=True,
+    depends_on_past=False,
     application_file="olist_spark.yaml",
     namespace="spark-jobs",
     kubernetes_conn_id="kubernetes-conn-default",
