@@ -43,7 +43,7 @@ subscribe_task = PubSubPullOperator(
 )
 
 def process_messages(ti):
-    messages = ti.xcom_pull(task_ids="pull_messages")
+    messages = ti.xcom_pull(task_ids="subscribe_message")
 
     if not messages:
         print("No messages received.")
