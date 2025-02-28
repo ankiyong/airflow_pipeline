@@ -13,6 +13,8 @@ spec:
   - "5000"
   sparkVersion: 3.5.3
   driver:
+    labels:
+      version: 3.5.3
     cores: 1
     memory: 512m
     serviceAccount: spark-operator-spark
