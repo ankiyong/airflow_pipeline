@@ -10,7 +10,7 @@ from airflow.models import XCom
 # from pyspark.sql.functions import from_json,col
 from datetime import datetime, timedelta
 import os
-import json
+import json,base64
 # from concurrent.futures import TimeoutError
 # from queue import Queue
 # import threading
@@ -42,21 +42,24 @@ subscribe_task = PubSubPullOperator(
     gcp_conn_id="google_cloud_default"
 )
 
-def save_messages_to_file(**kwargs):
-    ti = kwargs["ti"]
-    messages = ti.xcom_pull(task_ids="subscribe_message")
+def process_messages(ti):
+    messages = ti.xcom_pull(task_ids="pull_messages")
 
     if not messages:
-        return "No messages received"
+        print("No messages received.")
+        return
 
-    parsed_messages = [json.loads(msg["message"]["data"]) for msg in messages]
+    for msg in messages:
+        encoded_data = msg['message'].get('data')
+        if encoded_data:
+            decoded_data = base64.b64decode(encoded_data).decode('utf-8')
+            json_data = json.loads(decoded_data)
+            print(json_data)  # 여기에서 JSON 데이터를 저장하거나 처리 가능
 
-    with open("/opt/airflow/test.json", "w") as f:
-        json.dump(parsed_messages, f)
 
 save_to_file = PythonOperator(
     task_id="save_messages_to_file",
-    python_callable=save_messages_to_file,
+    python_callable=process_messages,
     provide_context=True,
     dag=dag,
 )
