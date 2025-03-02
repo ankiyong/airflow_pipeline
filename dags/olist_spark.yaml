@@ -7,21 +7,21 @@ spec:
   timeToLiveSeconds: 60 # Completed 상태의 pod를 60초 후에 삭제
   type: Scala
   mode: cluster
-  image: spark:3.5.5 # 사용하는 이미지
+  image: spark:3.5.0 # 사용하는 이미지
   imagePullPolicy: IfNotPresent
   mainClass: org.apache.spark.examples.SparkPi
-  mainApplicationFile: local:///opt/spark/examples/jars/spark-examples_2.12-3.5.5.jar # 이미지 내의 jar 파일
-  sparkVersion: 3.5.5
+  mainApplicationFile: local:///opt/spark/examples/jars/spark-examples_2.12-3.5.0.jar # 이미지 내의 jar 파일
+  sparkVersion: 3.5.0
   driver:
     labels:
-      version: 3.5.5
+      version: 3.5.0
     cores: 1
     coreLimit: 1000m
     memory: 512m
     serviceAccount: spark # 서비스 어카운트
   executor:
     labels:
-      version: 3.5.5
+      version: 3.5.0
     instances: 2 # executor의 수
     cores: 1 # cpu requests
     coreLimit: 1000m # cpu limit
