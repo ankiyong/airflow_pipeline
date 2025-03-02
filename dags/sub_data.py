@@ -83,7 +83,6 @@ spark_process = SparkKubernetesOperator(
     task_id="spark-process",
     depends_on_past=False,
     application_file="olist_spark.yaml",
-    namespace="spark-jobs",
     kubernetes_conn_id="kubernetes-conn-default",
     do_xcom_push=True,
     dag=dag
