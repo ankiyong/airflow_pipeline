@@ -18,7 +18,7 @@ spec:
     cores: 1
     coreLimit: 1000m
     memory: 512m
-    serviceAccount: spark-operator-spark # 서비스 어카운트
+    serviceAccount: spark # 서비스 어카운트
   executor:
     labels:
       version: 3.5.0
