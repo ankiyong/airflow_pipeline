@@ -8,7 +8,7 @@ spec:
   mode: cluster
   image: spark:3.5.3
   imagePullPolicy: IfNotPresent
-  mainApplicationFile: local:///opt/spark/read_json.py
+  mainApplicationFile: local:///opt/spark/examples/src/main/python/pi.py
   arguments:
   - "5000"
   sparkVersion: 3.5.3
