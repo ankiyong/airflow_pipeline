@@ -77,16 +77,18 @@ save_to_json=PythonOperator(
     dag=dag
 )
 
-
-
 spark_process = SparkKubernetesOperator(
-    task_id="spark-process",
-    depends_on_past=False,
-    namespace="airflow",
-    application_file="olist_spark.yaml",
-    kubernetes_conn_id="kubernetes-conn-default",
-    do_xcom_push=True,
-    dag=dag
-)
+       task_id="spark-process",
+       trigger_rule="all_success",
+       depends_on_past=False,
+       retries=3,
+       application_file="olist_spark.yaml",
+       namespace="spark-jobs",
+       kubernetes_conn_id="kubernetes-conn-default",
+       api_group="sparkoperator.k8s.io",
+       api_version="v1beta2",
+       do_xcom_push=True,
+       dag=dag
+   )
 
 subscribe_task >> process_messages >> save_to_json >> spark_process
