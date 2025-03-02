@@ -82,6 +82,7 @@ save_to_json=PythonOperator(
 spark_process = SparkKubernetesOperator(
     task_id="spark-process",
     depends_on_past=False,
+    namespace=a"airflow",
     application_file="olist_spark.yaml",
     kubernetes_conn_id="kubernetes-conn-default",
     do_xcom_push=True,
