@@ -2,7 +2,7 @@ apiVersion: sparkoperator.k8s.io/v1beta2
 kind: SparkApplication
 metadata:
   name: spark-pi
-  namespace: spark-jobs
+  namespace: spark-operator
 spec:
   timeToLiveSeconds: 60 # Completed 상태의 pod를 60초 후에 삭제
   type: Scala

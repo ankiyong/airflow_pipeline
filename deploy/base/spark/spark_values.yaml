@@ -14,6 +14,8 @@ controller:
     readOnly: false
   - name: spark-jobs
     mountPath: "/opt/spark/jobs"
-spark:
-  jobNamespaces:
+webhook:
+  enabled: true
+namespace:
   - spark-operator
+  - spark-jobs
