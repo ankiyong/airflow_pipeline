@@ -4,7 +4,7 @@ from airflow.operators.python_operator import PythonOperator
 from airflow.models.variable import Variable
 from airflow.utils.dates import days_ago
 from airflow.providers.google.cloud.operators.pubsub import PubSubPublishMessageOperator,PubSubPullOperator
-from airflow.providers.google.cloud.hooks.pubsub import GoogleCloudPubSubHook
+from airflow.providers.google.cloud.hooks.pubsub import PubSubHook
 from airflow.decorators import task, dag
 from airflow.models import XCom
 from airflow.providers.cncf.kubernetes.operators.spark_kubernetes import SparkKubernetesOperator
