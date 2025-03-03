@@ -64,7 +64,7 @@ def save_xcom_to_json(ti):
         json.dump(data,f,indent=4)
 
 def get_message_count():
-    hook = GoogleCloudPubSubHook(gcp_conn_id="google_cloud_default")
+    hook = PubSubHook(gcp_conn_id="google_cloud_default")
     subscribtions = hook.list_topic_subscriptions(
         project_id='data-streaming-olist',
         topic='order_data',
