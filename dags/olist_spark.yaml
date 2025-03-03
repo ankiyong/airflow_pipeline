@@ -5,26 +5,41 @@ metadata:
   namespace: default
 spec:
   timeToLiveSeconds: 60 # Completed 상태의 pod를 60초 후에 삭제
-  type: Scala
+  type: Python
   mode: cluster
   image: localhost:5000/spark:1.0 # 사용하는 이미지
   imagePullPolicy: IfNotPresent
   mainApplicationFile: local:///opt/spark/jobs/read_json.py # 이미지 내의 jar 파일
   sparkVersion: 3.5.0
+  volumes:
+    - name: spark-jobs
+      hostPath:
+        path: /home/aky/projects/olist/spark-jobs
+    - name: data
+      hostPath:
+        path: /home/aky/data
+
   driver:
     labels:
       version: 3.5.0
     cores: 1
     coreLimit: 1000m
     memory: 512m
-    serviceAccount: spark # 서비스 어카운트
+    serviceAccount: spark
+    volumeMounts:
+      - name: spark-jobs
+        mountPath: /opt/spark/jobs
+      - name: data
+        mountPath: /opt/spark/data
   executor:
     labels:
       version: 3.5.0
-    instances: 2 # executor의 수
-    cores: 1 # cpu requests
-    coreLimit: 1000m # cpu limit
+    instances: 2
+    cores: 1
+    coreLimit: 1000m 
     memory: 512m
     volumeMounts:
-      - name: airflow-log-pvc
+      - name: spark-jobs
         mountPath: /opt/spark/jobs
+      - name: data
+        mountPath: /opt/spark/data
