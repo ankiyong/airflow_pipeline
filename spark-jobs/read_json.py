@@ -9,7 +9,11 @@ if __name__ == "__main__":
         with open(file_path_sec,"r",encoding="utf-8") as f:
             raw_data = json.load(f)
         parsed_data = [json.loads(item) for item in raw_data]
-        multiline_df = spark.read.option("multiline","true") .json(parsed_data)
+
+
+        df = spark.parallelize(parsed_data).map(lambda x: json.dumps(x))
+        df = spark.read.json(df)
+        # multiline_df = spark.read.option("multiline","true") .json(parsed_data)
         multiline_df.printSchema()
         multiline_df.show()
     else:
