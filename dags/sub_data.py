@@ -3,7 +3,7 @@ from airflow.operators.bash import BashOperator
 from airflow.operators.python_operator import PythonOperator
 from airflow.models.variable import Variable
 from airflow.utils.dates import days_ago
-from airflow.providers.google.cloud.operators.pubsub import PubSubPublishMessageOperator,PubSubPullOperator
+from airflow.providers.google.cloud.operators.pubsub import PubSubPublishMessageOperator,PubSubPullOperator,PubSubPullSensor
 from airflow.providers.google.cloud.hooks.pubsub import PubSubHook
 from airflow.decorators import task, dag
 from airflow.models import XCom
@@ -33,14 +33,6 @@ dag = DAG(
     default_args=default_args,
     schedule_interval="@hourly",
     catchup=False,
-)
-
-subscribe_task = PubSubPullOperator(
-    task_id='subscribe_message',
-    subscription="order_data-sub",
-    project_id='data-streaming-olist',
-    max_messages=10,
-    gcp_conn_id="google_cloud_default"
 )
 
 def process_messages(ti):
@@ -75,8 +67,27 @@ def get_message_count():
 
     return subscribtions
 
+# subscribe_task = PubSubPullOperator(
+#     task_id='subscribe_message',
+#     subscription="order_data-sub",
+#     project_id='data-streaming-olist',
+#     max_messages=10,
+#     gcp_conn_id="google_cloud_default"
+# )
+
+subscribe_task = PubSubPullSensor(
+    task_id="wait_for_pubsub_messages",
+    project_id='data-streaming-olist',
+    subscription="order-data-sub",
+    max_messages=30,
+    ack_messages=False,
+    gcp_conn_id="google_cloud_default",
+    timeout=10,
+)
+
 process_messages = PythonOperator(
     task_id="save_messages_to_file",
+    depends_on_past=True,
     python_callable=process_messages,
     provide_context=True,
     dag=dag,
@@ -84,6 +95,7 @@ process_messages = PythonOperator(
 
 save_to_json=PythonOperator(
     task_id="save_to_json",
+    depends_on_past=True
     python_callable=save_xcom_to_json,
     provide_context=True,
     dag=dag
@@ -92,7 +104,7 @@ save_to_json=PythonOperator(
 spark_process = SparkKubernetesOperator(
     task_id="spark-process",
     trigger_rule="all_success",
-    depends_on_past=False,
+    depends_on_past=True
     retries=3,
     application_file="olist_spark.yaml",
     namespace="default",
@@ -101,8 +113,8 @@ spark_process = SparkKubernetesOperator(
     dag=dag
 )
 
-message_count = PythonOperator(
-    task_id = "message-count-from-pubsub",
-    python_callable = get_message_count
-)
-subscribe_task >> process_messages >> save_to_json >> message_count
+# message_count = PythonOperator(
+#     task_id = "message-count-from-pubsub",
+#     python_callable = get_message_count
+# )
+subscribe_task >> process_messages >> save_to_json
