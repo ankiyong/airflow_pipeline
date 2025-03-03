@@ -4,6 +4,7 @@ from airflow.operators.python_operator import PythonOperator
 from airflow.models.variable import Variable
 from airflow.utils.dates import days_ago
 from airflow.providers.google.cloud.operators.pubsub import PubSubPublishMessageOperator,PubSubPullOperator
+from airflow.providers.google.cloud.hooks.pubsub import GoogleCloudPubSubHook
 from airflow.decorators import task, dag
 from airflow.models import XCom
 from airflow.providers.cncf.kubernetes.operators.spark_kubernetes import SparkKubernetesOperator
@@ -62,6 +63,17 @@ def save_xcom_to_json(ti):
     with open(file_path,"w") as f:
         json.dump(data,f,indent=4)
 
+def get_message_count():
+    hook = GoogleCloudPubSubHook(gcp_conn_id="google_cloud_default")
+    subscribtions = hook.list_topic_subscriptions(
+        project_id='data-streaming-olist',
+        topic='order_data',
+    )
+    if not subscribtions:
+        print("현재 topic에 Subscribtion이 없습니다.")
+        return
+
+    return subscribtions
 
 process_messages = PythonOperator(
     task_id="save_messages_to_file",
@@ -89,5 +101,8 @@ spark_process = SparkKubernetesOperator(
     dag=dag
 )
 
-
-subscribe_task >> process_messages >> save_to_json >> spark_process
+message_count = PythonOperator(
+    task_id = "message-count-from-pubsub",
+    python_callable = get_message_count
+)
+subscribe_task >> process_messages >> save_to_json >> message_count
