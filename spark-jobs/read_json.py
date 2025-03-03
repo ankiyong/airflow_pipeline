@@ -6,14 +6,10 @@ if __name__ == "__main__":
     if os.path.exists(file_path_sec):
         print("################# 존재합니다. spark 시작합니다 #################")
         spark = SparkSession.builder.appName("DataProcessing").getOrCreate()
-        # with open(file_path_sec,"r",encoding="utf-8") as f:
-        #     raw_data = json.load(f)
-        # parsed_data = [json.loads(item) for item in raw_data]
-        data = []
         with open(file_path_sec, 'r') as f:
             raw_data = json.load(f)
             parsed_data = [json.loads(item) for item in raw_data]
-            df = spark.createDataFrame(parsed_data[0])
+            df = spark.createDataFrame(parsed_data)
             df.show()
         # multiline_df = spark.read.option("multiline","true") .json(parsed_data)
         # multiline_df.printSchema()
