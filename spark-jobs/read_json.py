@@ -11,8 +11,9 @@ if __name__ == "__main__":
         # parsed_data = [json.loads(item) for item in raw_data]
         data = []
         with open(file_path_sec, 'r') as f:
-            data.extend(json.load(f))
-            df = spark.createDataFrame(data[0])
+            raw_data = json.load(f)
+            parsed_data = [json.loads(item) for item in raw_data]
+            df = spark.createDataFrame(parsed_data[0])
             df.show()
         # multiline_df = spark.read.option("multiline","true") .json(parsed_data)
         # multiline_df.printSchema()
