@@ -95,7 +95,7 @@ process_messages = PythonOperator(
 
 save_to_json=PythonOperator(
     task_id="save_to_json",
-    depends_on_past=True
+    depends_on_past=True,
     python_callable=save_xcom_to_json,
     provide_context=True,
     dag=dag
@@ -104,7 +104,7 @@ save_to_json=PythonOperator(
 spark_process = SparkKubernetesOperator(
     task_id="spark-process",
     trigger_rule="all_success",
-    depends_on_past=True
+    depends_on_past=True,
     retries=3,
     application_file="olist_spark.yaml",
     namespace="default",
