@@ -6,7 +6,7 @@ from airflow.utils.dates import days_ago
 from airflow.providers.google.cloud.operators.pubsub import PubSubPublishMessageOperator,PubSubPullOperator
 import requests,json
 from datetime import datetime, timedelta
-import os
+import os,random
 from airflow.decorators import task, dag
 from airflow.models import XCom
 
@@ -22,9 +22,10 @@ def publish_to_pubsub():
         else:
             with open(last_value_path,encoding="utf-8") as file:
                 last_value = file.read()
-        url = f"http://192.168.28.3:8000/orders/id/{int(last_value)}/{int(last_value)+10}"
+        interval = random.randrange(3,30)
+        url = f"http://192.168.28.3:8000/orders/id/{int(last_value)}/{int(last_value)+interval}"
         with open(last_value_path, "w", encoding="utf-8") as file:
-            file.write(f"{int(last_value)+10}")
+            file.write(f"{int(last_value)+interval}")
         response = requests.get(url)
         if response.status_code == 200:
             print("Connect Success")
