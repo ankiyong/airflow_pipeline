@@ -60,7 +60,7 @@ def save_xcom_to_json(ti):
     data = ti.xcom_pull(task_ids="save_messages_to_file",key="return_value")
     file_path = "/opt/airflow/logs/xcom_data.json"
     with open(file_path,"w") as f:
-        json.dump(json_data,f,indent=4)
+        json.dump(data,f,indent=4)
 
 
 process_messages = PythonOperator(
