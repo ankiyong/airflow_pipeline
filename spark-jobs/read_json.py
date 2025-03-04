@@ -6,7 +6,7 @@ if __name__ == "__main__":
     if os.path.exists(file_path_sec):
         print("################# 존재합니다. spark 시작합니다 #################")
         spark = SparkSession.builder.appName("DataProcessing") \
-                .config('spark.jars', 'gs://spark-lib/bigquery/spark-bigquery-latest_2.12.jar') \
+                .config('spark.jars', 'com.google.cloud.spark:spark-bigquery-with-dependencies_2.12:jar:0.41.1') \
                 .getOrCreate()
 
         with open(file_path_sec, 'r') as f:
