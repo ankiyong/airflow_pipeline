@@ -51,7 +51,7 @@ def publish_to_pubsub():
         provide_context=True,
     )
     trigger_next = TriggerDagRunOperator(
-        # task_id="trigger_next_run",
+        task_id="trigger_next_run",
         trigger_dag_id="publish_to_pubsub",
         execution_date=None,  # 새로운 실행을 자동 생성
         run_id="manual__{{ ts_nodash }}",
