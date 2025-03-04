@@ -28,7 +28,10 @@ def publish_to_pubsub():
         if response.status_code == 200:
             print("Connect Success")
             return response.json()
-
+    @task
+    def get_run_id():
+        """고유한 run_id 생성"""
+        return f"manual__{datetime.now().strftime('%Y%m%d%H%M%S')}"
     def publish_data(ti):
         data = ti.xcom_pull(task_ids="get_order_data_after_last_value")
         if not data:
@@ -54,9 +57,10 @@ def publish_to_pubsub():
         task_id="trigger_next_run",
         trigger_dag_id="publish_to_pubsub",
         execution_date=None,  # 새로운 실행을 자동 생성
-        run_id="manual__{{ ts_nodash }}",
+        run_id="{{ ti.xcom_pull(task_ids='get_run_id') }}",
         wait_for_completion=False
     )
     data = get_order_data_after_last_value()
-    data >> publish_task >> trigger_next
+    run_id_task = get_run_id()
+    data >> publish_task >> run_id_task >> trigger_next
 publish_to_pubsub_dag = publish_to_pubsub()
