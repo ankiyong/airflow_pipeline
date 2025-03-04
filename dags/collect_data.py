@@ -54,7 +54,7 @@ def publish_to_pubsub():
         # task_id="trigger_next_run",
         trigger_dag_id="publish_to_pubsub",
         execution_date=None,  # 새로운 실행을 자동 생성
-        run_id=f"manual__{uuid.uuid4()}",
+        run_id="manual__{{ ts_nodash }}",
         wait_for_completion=False
     )
     data = get_order_data_after_last_value()
