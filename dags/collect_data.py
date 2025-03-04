@@ -53,14 +53,20 @@ def publish_to_pubsub():
         python_callable=publish_data,
         provide_context=True,
     )
-    trigger_next = TriggerDagRunOperator(
-        task_id="trigger_next_run",
-        trigger_dag_id="publish_to_pubsub",
-        execution_date=None,  # 새로운 실행을 자동 생성
-        run_id="{{ ti.xcom_pull(task_ids='get_run_id') }}",
-        wait_for_completion=False
-    )
+    @task
+    def trigger_dag(ti):
+        run_id = ti.xcom_pull(task_ids='get_run_id')
+        trigger_next = TriggerDagRunOperator(
+            task_id="trigger_next_run",
+            trigger_dag_id="publish_to_pubsub",
+            execution_date=None,  # 새로운 실행을 자동 생성
+            run_id=run_id,
+            wait_for_completion=False
+        )
+        trigger_next.execute(context={})
+
     data = get_order_data_after_last_value()
     run_id_task = get_run_id()
+    trigger_next = trigger_dag()
     data >> publish_task >> run_id_task >> trigger_next
 publish_to_pubsub_dag = publish_to_pubsub()
