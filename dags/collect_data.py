@@ -1,16 +1,14 @@
 from airflow import DAG
-from airflow.operators.bash import BashOperator
+from airflow.providers.google.cloud.operators.pubsub import PubSubPublishMessageOperator
+from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from airflow.operators.python_operator import PythonOperator
-from airflow.models.variable import Variable
-from airflow.utils.dates import days_ago
-from airflow.providers.google.cloud.operators.pubsub import PubSubPublishMessageOperator,PubSubPullOperator
 import requests,json
-from datetime import datetime, timedelta
+from datetime import datetime
 import os,random
 from airflow.decorators import task, dag
 from airflow.models import XCom
 
-@dag(schedule_interval=None,start_date=days_ago(1),catchup=False)
+@dag(schedule_interval=None,start_date= datetime.now(),catchup=False)
 def publish_to_pubsub():
     @task
     def get_order_data_after_last_value():
@@ -30,8 +28,12 @@ def publish_to_pubsub():
         if response.status_code == 200:
             print("Connect Success")
             return response.json()
-    @task
+
     def publish_data(data):
+        if not data:
+            print("데이터가 존재하지 않습니다.")
+            return None
+
         for d in data:
             json_data = json.dumps(d).encode("utf-8")
             publish_task = PubSubPublishMessageOperator(
@@ -42,7 +44,19 @@ def publish_to_pubsub():
             )
             publish_task.execute(context={})
 
+    publish_task = PythonOperator(
+        task_id = "publish_message",
+        python_callable=publish_data,
+        provide_context=True,
+    )
+    trigger_next = TriggerDagRunOperator(
+        task_id="trigger_next_run",
+        trigger_dag_id="publish_to_pubsub",
+        execution_date="{{ ts }}",
+        reset_dag_run=True,
+        wait_for_completion=False
+    )
     data = get_order_data_after_last_value()
     publish_data(data)
-
+    get_order_data_after_last_value >> publish_task >> trigger_next
 publish_to_pubsub_dag = publish_to_pubsub()
