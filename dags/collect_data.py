@@ -2,7 +2,7 @@ from airflow import DAG
 from airflow.providers.google.cloud.operators.pubsub import PubSubPublishMessageOperator
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from airflow.operators.python_operator import PythonOperator
-import requests,json
+import requests,json,uuid
 from datetime import datetime
 import os,random
 from airflow.decorators import task, dag
@@ -51,9 +51,10 @@ def publish_to_pubsub():
         provide_context=True,
     )
     trigger_next = TriggerDagRunOperator(
-        task_id="trigger_next_run",
+        # task_id="trigger_next_run",
         trigger_dag_id="publish_to_pubsub",
-        execution_date="{{ ts }}",
+        execution_date=None,  # 새로운 실행을 자동 생성
+        run_id=f"manual__{uuid.uuid4()}"
         wait_for_completion=False
     )
     data = get_order_data_after_last_value()
