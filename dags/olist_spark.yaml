@@ -7,10 +7,10 @@ spec:
   timeToLiveSeconds: 60 # Completed 상태의 pod를 60초 후에 삭제
   type: Python
   mode: cluster
-  image: localhost:5000/spark:1.1 # 사용하는 이미지
+  image: localhost:5000/spark:1.2 # 사용하는 이미지
   imagePullPolicy: IfNotPresent
   mainApplicationFile: local:///opt/spark/jobs/read_json.py # 이미지 내의 jar 파일
-  sparkVersion: 3.5.0
+  sparkVersion: 3.5.3
   volumes:
     - name: spark-jobs
       hostPath:
@@ -21,7 +21,7 @@ spec:
 
   driver:
     labels:
-      version: 3.5.0
+      version: 3.5.3
     cores: 1
     coreLimit: 1000m
     memory: 512m
@@ -33,7 +33,7 @@ spec:
         mountPath: /opt/spark/data
   executor:
     labels:
-      version: 3.5.0
+      version: 3.5.3
     instances: 2
     cores: 1
     coreLimit: 1000m
