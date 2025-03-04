@@ -14,6 +14,12 @@ if __name__ == "__main__":
                 data.append(json.loads(i_replace))
             df = spark.createDataFrame(data)
             df.show()
-            df.write.parquet("/opt/spark/data/order_data.parquet")
+            table = "data-streaming-olist.olist_dataset.olist_orders"
+            df.write \
+                .format("bigquery") \
+                .option("table",table) \
+                .option("temporaryGcsBucket", "your-temp-bucket") \
+                .mode("append") \
+                .save()
     else:
         print("################# 존재하지 않습니다 #################")
