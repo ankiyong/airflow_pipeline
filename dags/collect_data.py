@@ -29,7 +29,8 @@ def publish_to_pubsub():
             print("Connect Success")
             return response.json()
 
-    def publish_data(data):
+    def publish_data(ti):
+        data = ti.xcom_pull(task_ids="get_order_data_after_last_value")
         if not data:
             print("데이터가 존재하지 않습니다.")
             return None
@@ -57,6 +58,6 @@ def publish_to_pubsub():
         wait_for_completion=False
     )
     data = get_order_data_after_last_value()
-    publish_data(data)
-    get_order_data_after_last_value >> publish_task >> trigger_next
+    # publish_data(data)
+    data >> publish_task >> trigger_next
 publish_to_pubsub_dag = publish_to_pubsub()
