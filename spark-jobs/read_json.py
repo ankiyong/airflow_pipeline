@@ -18,8 +18,6 @@ if __name__ == "__main__":
             .getOrCreate()
             )
 
-        df = spark.read.parquet("[GCS gsutil URI 주소]")
-
         with open(file_path_sec, 'r') as f:
             json_data = json.load(f)
             data = []
