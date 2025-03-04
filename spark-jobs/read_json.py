@@ -21,7 +21,6 @@ if __name__ == "__main__":
             df.write \
                 .format("bigquery") \
                 .option("table",table) \
-                .option("temporaryGcsBucket", "your-temp-bucket") \
                 .mode("append") \
                 .save()
     else:
