@@ -76,6 +76,7 @@ subscribe_task = PubSubPullSensor(
     ack_messages=False,
     gcp_conn_id="google_cloud_default",
     timeout=10,
+    mode="reschedule",
 )
 
 process_messages = PythonOperator(
@@ -96,7 +97,7 @@ save_to_json=PythonOperator(
 
 spark_process = SparkKubernetesOperator(
     task_id="spark-process",
-    #trigger_rule="all_success",
+    trigger_rule="all_success",
     depends_on_past=True,
     retries=3,
     application_file="olist_spark.yaml",
