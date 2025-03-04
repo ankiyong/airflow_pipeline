@@ -56,24 +56,14 @@ def save_xcom_to_json(ti):
     with open(file_path,"w") as f:
         json.dump(data,f,indent=4)
 
-def get_message_count():
-    hook = PubSubHook(gcp_conn_id="google_cloud_default")
-    subscribtions = hook.list_topic_subscriptions(
-        project_id='data-streaming-olist',
-        topic='order_data',
-    )
-    if not subscribtions:
-        print("현재 topic에 Subscribtion이 없습니다.")
-        return
-
-    return subscribtions
 
 subscribe_task = PubSubPullOperator(
     task_id='subscribe_message',
     subscription="order_data-sub",
     project_id='data-streaming-olist',
     max_messages=10,
-    gcp_conn_id="google_cloud_default"
+    gcp_conn_id="google_cloud_default",
+    dag=dag
 )
 
 process_messages = PythonOperator(
