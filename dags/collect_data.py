@@ -54,10 +54,8 @@ def publish_to_pubsub():
         task_id="trigger_next_run",
         trigger_dag_id="publish_to_pubsub",
         execution_date="{{ ts }}",
-        reset_dag_run=True,
         wait_for_completion=False
     )
     data = get_order_data_after_last_value()
-    # publish_data(data)
     data >> publish_task >> trigger_next
 publish_to_pubsub_dag = publish_to_pubsub()
