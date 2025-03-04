@@ -68,15 +68,12 @@ def get_message_count():
 
     return subscribtions
 
-subscribe_task = PubSubPullSensor(
-    task_id="wait_for_pubsub_messages",
+subscribe_task = PubSubPullOperator(
+    task_id='subscribe_message',
+    subscription="order_data-sub",
     project_id='data-streaming-olist',
-    subscription="order-data-sub",
-    max_messages=30,
-    ack_messages=False,
-    gcp_conn_id="google_cloud_default",
-    timeout=10,
-    mode="reschedule",
+    max_messages=10,
+    gcp_conn_id="google_cloud_default"
 )
 
 process_messages = PythonOperator(
