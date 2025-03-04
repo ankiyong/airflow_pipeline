@@ -30,7 +30,7 @@ default_args = {
 
 
 dag = DAG(
-    "pubsub_to_spark",
+    "spark_and_bigquery",
     default_args=default_args,
     schedule_interval="@hourly",
     catchup=False,
