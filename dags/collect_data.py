@@ -1,12 +1,10 @@
 from airflow import DAG
 from airflow.providers.google.cloud.operators.pubsub import PubSubPublishMessageOperator
-from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from airflow.operators.python_operator import PythonOperator
-import requests,json,uuid
+import requests,json
 from datetime import datetime
 import os,random
 from airflow.decorators import task, dag
-from airflow.models import XCom
 
 @dag(schedule_interval=None,start_date= datetime.now(),catchup=False)
 def publish_to_pubsub():
@@ -28,10 +26,6 @@ def publish_to_pubsub():
         if response.status_code == 200:
             print("Connect Success")
             return response.json()
-    @task
-    def get_run_id():
-        """고유한 run_id 생성"""
-        return f"manual__{datetime.now().strftime('%Y%m%d%H%M%S')}"
     def publish_data(ti):
         data = ti.xcom_pull(task_ids="get_order_data_after_last_value")
         if not data:
@@ -53,20 +47,7 @@ def publish_to_pubsub():
         python_callable=publish_data,
         provide_context=True,
     )
-    @task
-    def trigger_dag(ti):
-        run_id = ti.xcom_pull(task_ids='get_run_id')
-        trigger_next = TriggerDagRunOperator(
-            task_id="trigger_next_run",
-            trigger_dag_id="publish_to_pubsub",
-            execution_date=None,  # 새로운 실행을 자동 생성
-            run_id=run_id,
-            wait_for_completion=False
-        )
-        trigger_next.execute(context={})
 
     data = get_order_data_after_last_value()
-    run_id_task = get_run_id()
-    trigger_next = trigger_dag()
-    data >> publish_task >> run_id_task >> trigger_next
+    data >> publish_task
 publish_to_pubsub_dag = publish_to_pubsub()
