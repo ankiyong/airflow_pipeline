@@ -68,14 +68,6 @@ def get_message_count():
 
     return subscribtions
 
-# subscribe_task = PubSubPullOperator(
-#     task_id='subscribe_message',
-#     subscription="order_data-sub",
-#     project_id='data-streaming-olist',
-#     max_messages=10,
-#     gcp_conn_id="google_cloud_default"
-# )
-
 subscribe_task = PubSubPullSensor(
     task_id="wait_for_pubsub_messages",
     project_id='data-streaming-olist',
@@ -114,8 +106,4 @@ spark_process = SparkKubernetesOperator(
     dag=dag
 )
 
-# message_count = PythonOperator(
-#     task_id = "message-count-from-pubsub",
-#     python_callable = get_message_count
-# )
-subscribe_task >> process_messages >> save_to_json
+subscribe_task >> process_messages >> save_to_json >> spark_process
