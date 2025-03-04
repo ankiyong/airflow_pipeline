@@ -5,7 +5,10 @@ if __name__ == "__main__":
     file_path_sec = "/opt/spark/data/xcom_data.json"
     if os.path.exists(file_path_sec):
         print("################# 존재합니다. spark 시작합니다 #################")
-        spark = SparkSession.builder.appName("DataProcessing").getOrCreate()
+        spark = SparkSession.builder.appName("DataProcessing") \
+                .config('spark.jars', 'gs://spark-lib/bigquery/spark-bigquery-latest_2.12.jar') \
+                .getOrCreate()
+
         with open(file_path_sec, 'r') as f:
             json_data = json.load(f)
             data = []
