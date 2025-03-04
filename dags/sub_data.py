@@ -30,7 +30,7 @@ default_args = {
 
 
 dag = DAG(
-    "pubsub_to_spark",
+    "pubsub_to_spark2",
     default_args=default_args,
     schedule_interval="@hourly",
     catchup=False,
