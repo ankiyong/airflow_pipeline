@@ -11,9 +11,9 @@ if __name__ == "__main__":
             data = []
             for i in json_data:
                 i_replace = i.replace("'",'"')
-                # print(json)
                 data.append(json.loads(i_replace))
-                df = spark.createDataFrame(data)
-                df.show()
+            df = spark.createDataFrame(data)
+            df.show()
+            df.write.parquet("/opt/spark/data/order_data.parquet")
     else:
         print("################# 존재하지 않습니다 #################")
