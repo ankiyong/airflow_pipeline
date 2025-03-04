@@ -30,7 +30,7 @@ default_args = {
 
 
 dag = DAG(
-    "pubsub_to_spark2",
+    "from_pubsub_to_spark",
     default_args=default_args,
     schedule_interval="@hourly",
     catchup=False,
@@ -57,30 +57,30 @@ def save_xcom_to_json(ti):
         json.dump(data,f,indent=4)
 
 
-# subscribe_task = PubSubPullOperator(
-#     task_id='subscribe_message',
-#     subscription="order_data-sub",
-#     project_id='data-streaming-olist',
-#     max_messages=10,
-#     gcp_conn_id="google_cloud_default",
-#     dag=dag
-# )
+subscribe_task = PubSubPullOperator(
+    task_id='subscribe_message',
+    subscription="order_data-sub",
+    project_id='data-streaming-olist',
+    max_messages=10,
+    gcp_conn_id="google_cloud_default",
+    dag=dag
+)
 
-# process_messages = PythonOperator(
-#     task_id="save_messages_to_file",
-#     depends_on_past=True,
-#     python_callable=process_messages,
-#     provide_context=True,
-#     dag=dag,
-# )
+process_messages = PythonOperator(
+    task_id="save_messages_to_file",
+    depends_on_past=True,
+    python_callable=process_messages,
+    provide_context=True,
+    dag=dag,
+)
 
-# save_to_json=PythonOperator(
-#     task_id="save_to_json",
-#     depends_on_past=True,
-#     python_callable=save_xcom_to_json,
-#     provide_context=True,
-#     dag=dag
-# )
+save_to_json=PythonOperator(
+    task_id="save_to_json",
+    depends_on_past=True,
+    python_callable=save_xcom_to_json,
+    provide_context=True,
+    dag=dag
+)
 
 spark_process = SparkKubernetesOperator(
     task_id="spark-process",
@@ -94,5 +94,4 @@ spark_process = SparkKubernetesOperator(
     dag=dag
 )
 
-# subscribe_task >> process_messages >> save_to_json >>
-spark_process
+subscribe_task >> process_messages >> save_to_json >> spark_process
