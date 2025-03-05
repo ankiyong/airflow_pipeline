@@ -51,3 +51,7 @@
 
 ### 시각화
 - Looker Studio를 통해 BigQuery에 저장된 데이터를 활용하여 시각화
+
+## Trouble Shooting
+[Spark on K8S](https://aky123.tistory.com/66)
+[psycopg2 install error](https://aky123.tistory.com/60)
