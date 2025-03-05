@@ -7,7 +7,7 @@
 </p>
 
 # :rocket: e-Commerce Data Engineering Project
-![alt text](images/banner.png)
+![Image](https://github.com/user-attachments/assets/de7c7081-afec-4009-a24a-0466d52cc6fd)
 
 
 
@@ -17,8 +17,7 @@
 ## Data Visualization
 
 ## Data Architecture
-
-![alt text](images/architecture.png)
+![Image](https://github.com/user-attachments/assets/dee00690-3749-4b73-bed2-c28212b7bb0a)
 ### 인프라
 1. Local - k3s 환경 (3 Node 구성)
 2. Cloud - GCP (Pub/Sub,CloudStorage,Bigquery,LookerStudio)
