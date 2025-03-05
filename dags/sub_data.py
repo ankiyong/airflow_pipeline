@@ -1,20 +1,11 @@
 from airflow import DAG
-from airflow.operators.bash import BashOperator
 from airflow.operators.python_operator import PythonOperator
-from airflow.models.variable import Variable
-from airflow.utils.dates import days_ago
-from airflow.providers.google.cloud.operators.pubsub import PubSubPublishMessageOperator,PubSubPullOperator
-from airflow.providers.google.cloud.sensors.pubsub import PubSubPullSensor
-from airflow.providers.google.cloud.hooks.pubsub import PubSubHook
-from airflow.decorators import task, dag
-from airflow.models import XCom
+from airflow.providers.google.cloud.operators.pubsub import PubSubPullOperator
+from airflow.sensors.time_delta import TimeDeltaSensor
+from airflow.decorators import dag
 from airflow.providers.cncf.kubernetes.operators.spark_kubernetes import SparkKubernetesOperator
-from airflow.providers.cncf.kubernetes.sensors.spark_kubernetes import SparkKubernetesSensor
-from airflow.models import Variable
-from kubernetes.client import models as k8s
-from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOperator
+from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from datetime import datetime, timedelta
-import os
 import json,base64
 
 PROJECT_ID = "data-streaming-olist"
@@ -32,7 +23,7 @@ default_args = {
 dag = DAG(
     "spark_and_gcs",
     default_args=default_args,
-    schedule_interval=timedelta(minutes=1),
+    schedule_interval=None,
     catchup=False,
 )
 
@@ -61,7 +52,7 @@ subscribe_task = PubSubPullOperator(
     task_id='subscribe_message',
     subscription="order_data-sub",
     project_id='data-streaming-olist',
-    max_messages=10,
+    max_messages=100,
     gcp_conn_id="google_cloud_default",
     dag=dag
 )
@@ -94,4 +85,15 @@ spark_process = SparkKubernetesOperator(
     dag=dag
 )
 
-subscribe_task >> process_messages >> save_to_json >> spark_process
+wait = TimeDeltaSensor(
+    task_id="wait_5_seconds",
+    delta=timedelta(seconds=10)
+)
+
+trigger_next_run = TriggerDagRunOperator(
+    task_id="trigger_next_run",
+    trigger_dag_id="spark_and_gcs",
+    wait_for_completion=False,
+)
+
+subscribe_task >> process_messages >> save_to_json >> spark_process >> wait >> trigger_next_run
