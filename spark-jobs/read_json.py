@@ -33,8 +33,6 @@ if __name__ == "__main__":
 
             df = df.drop("id","order_estimated_delivery_date","order_approved_at","order_delivered_carrier_date")
             df.show()
-            spark.stop()
-
             df.write.format("parquet").save(parquet_path)
     else:
         print("################# 존재하지 않습니다 #################")
