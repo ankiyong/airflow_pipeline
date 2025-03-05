@@ -32,6 +32,7 @@ if __name__ == "__main__":
                     .withColumn("delevery_time",floor(col("time_diff_seconds")/3600))
 
             df = df.drop("id","order_estimated_delivery_date","order_approved_at","order_delivered_carrier_date")
+            df = df.na.drop()
             df.show()
             df.write.format("parquet").save(parquet_path)
     else:
