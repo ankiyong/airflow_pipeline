@@ -6,7 +6,7 @@ from datetime import datetime,timedelta
 import os,random
 from airflow.decorators import task, dag
 
-@dag(schedule_interval=timedelta(0),start_date= datetime.now(),catchup=False)
+@dag(schedule_interval=None,start_date= datetime.now(),catchup=False)
 def publish_to_pubsub():
     @task
     def get_order_data_after_last_value():
@@ -47,7 +47,12 @@ def publish_to_pubsub():
         python_callable=publish_data,
         provide_context=True,
     )
+    trigger_next_run = TriggerDagRunOperator(
+        task_id="trigger_next_run",
+        trigger_dag_id="publish_to_pubsub",  # ✅ DAG이 종료되면 다시 실행
+        wait_for_completion=False,
+    )
 
     data = get_order_data_after_last_value()
-    data >> publish_task
+    data >> publish_task >> trigger_next_run 
 publish_to_pubsub_dag = publish_to_pubsub()
