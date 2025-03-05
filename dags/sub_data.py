@@ -32,7 +32,7 @@ default_args = {
 dag = DAG(
     "spark_and_gcs",
     default_args=default_args,
-    schedule_interval="@hourly",
+    schedule_interval=timedelta(minutes=1),
     catchup=False,
 )
 
