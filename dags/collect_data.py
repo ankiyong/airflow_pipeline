@@ -2,11 +2,11 @@ from airflow import DAG
 from airflow.providers.google.cloud.operators.pubsub import PubSubPublishMessageOperator
 from airflow.operators.python_operator import PythonOperator
 import requests,json
-from datetime import datetime
+from datetime import datetime,timedelta
 import os,random
 from airflow.decorators import task, dag
 
-@dag(schedule_interval=None,start_date= datetime.now(),catchup=False)
+@dag(schedule_interval=timedelta(0),start_date= datetime.now(),catchup=False)
 def publish_to_pubsub():
     @task
     def get_order_data_after_last_value():
