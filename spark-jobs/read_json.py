@@ -1,5 +1,6 @@
 from pyspark.sql import SparkSession
-import json,time,os,subprocess
+import json,os
+from pyspark.sql.functions import col,to_timestamp,unix_timestamp,floor
 
 if __name__ == "__main__":
     file_path_sec = "/opt/spark/data/xcom_data.json"
@@ -25,7 +26,14 @@ if __name__ == "__main__":
                 i_replace = i.replace("'",'"')
                 data.append(json.loads(i_replace))
             df = spark.createDataFrame(data)
+            df = df.withColumn("order_delivered_customer_date", to_timestamp(col("order_delivered_customer_date"))) \
+                    .withColumn("order_purchase_timestamp", to_timestamp(col("order_purchase_timestamp"))) \
+                    .withColumn("time_diff_seconds", unix_timestamp(col("order_delivered_customer_date")) - unix_timestamp(col("order_purchase_timestamp"))) \
+                    .withColumn("delevery_time",floor(col("time_diff_seconds")/3600))
+
+            df = df.drop("id","order_estimated_delivery_date","order_approved_at","order_delivered_carrier_date")
             df.show()
+            spark.stop()
 
             df.write.format("parquet").save(parquet_path)
     else:

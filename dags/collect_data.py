@@ -50,10 +50,10 @@ def publish_to_pubsub():
     )
     trigger_next_run = TriggerDagRunOperator(
         task_id="trigger_next_run",
-        trigger_dag_id="publish_to_pubsub",  # ✅ DAG이 종료되면 다시 실행
+        trigger_dag_id="publish_to_pubsub",
         wait_for_completion=False,
     )
 
     data = get_order_data_after_last_value()
-    data >> publish_task >> trigger_next_run 
+    data >> publish_task >> trigger_next_run
 publish_to_pubsub_dag = publish_to_pubsub()
