@@ -1,5 +1,6 @@
 from airflow import DAG
 from airflow.providers.google.cloud.operators.pubsub import PubSubPublishMessageOperator
+from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from airflow.operators.python_operator import PythonOperator
 import requests,json
 from datetime import datetime,timedelta
