@@ -7,7 +7,7 @@ if __name__ == "__main__":
     if os.path.exists(file_path_sec):
         print("################# 존재합니다. spark 시작합니다 #################")
         gcs_bucket = "olist_buckets"
-        parquet_path = f"gs://{gcs_bucket}/orders/orders.parquet.{datetime}"
+        parquet_path = f"gs://{gcs_bucket}/orders/orders.parquet.{datetime()}"
         spark = (
             SparkSession.builder
             .appName("pyspark-gcs-connection")
