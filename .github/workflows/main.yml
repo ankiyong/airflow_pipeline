@@ -4,6 +4,25 @@ on:
   push:
     branches:
     - main
+
+# jobs:
+  # deploy:
+  #   runs-on: ubuntu-latest
+
+  #   steps:
+  #   - name: Checkout
+  #     uses: actions/checkout@v2
+  #     with:
+  #       ref: main
+  #   - name: Set up gcloud Cloud SDK environment
+  #     uses: google-github-actions/setup-gcloud@v2.1.4
+  #   - id: 'auth'
+  #     uses: 'google-github-actions/auth@v2'
+  #     with:
+  #       credentials_json: ${{ secrets.GCS_SERVICE_ACCOUNT_KEY }}
+  #   - name: Deploy
+  #     run: |-
+  #       gsutil -m rsync -R ./static_data gs://olist_data_buckets/
 jobs:
   deploy-to-cloud-storage:
     runs-on: ubuntu-latest
@@ -16,7 +35,7 @@ jobs:
     - id: 'auth'
       uses: 'google-github-actions/auth@v2'
       with:
-        workload_identity_provider: 'projects/95468451293/locations/global/workloadIdentityPools/github-action/'
+        workload_identity_provider: 'principal://iam.googleapis.com/projects/95468451293/locations/global/workloadIdentityPools/github-action/subject/SUBJECT_ATTRIBUTE_VALUE'
         service_account: 'aky-dev@olist-data-engineering.iam.gserviceaccount.com'
     - id: 'upload-file'
       uses: 'google-github-actions/upload-cloud-storage@v0'
