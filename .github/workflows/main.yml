@@ -4,13 +4,32 @@ on:
   push:
     branches:
     - main
+
+# jobs:
+  # deploy:
+  #   runs-on: ubuntu-latest
+
+  #   steps:
+  #   - name: Checkout
+  #     uses: actions/checkout@v2
+  #     with:
+  #       ref: main
+  #   - name: Set up gcloud Cloud SDK environment
+  #     uses: google-github-actions/setup-gcloud@v2.1.4
+  #   - id: 'auth'
+  #     uses: 'google-github-actions/auth@v2'
+  #     with:
+  #       credentials_json: ${{ secrets.GCS_SERVICE_ACCOUNT_KEY }}
+  #   - name: Deploy
+  #     run: |-
+  #       gsutil -m rsync -R ./static_data gs://olist_data_buckets/
 jobs:
+  deploy:
+    runs-on: ubuntu-latest
   job_id:
     permissions:
       contents: 'read'
       id-token: 'write'
-  deploy:
-    runs-on: ubuntu-latest
     steps:
     - id: 'checkout'
       uses: 'actions/checkout@v4'
