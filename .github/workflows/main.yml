@@ -19,4 +19,4 @@ jobs:
 
     - name: Deploy
       run: |-
-        gsutil -m rsync -x "GCS에싱크하지 않을 목록" -R /home/runner/work/data_streaming/data_streaming/ststic_data gs://olist_data_buckets
+        gsutil -m rsync -R /home/runner/work/data_streaming/data_streaming/ststic_data gs://olist_data_buckets
