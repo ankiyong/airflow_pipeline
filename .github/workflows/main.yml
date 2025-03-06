@@ -1,4 +1,8 @@
 name: git to gcs
+on:
+  push:
+    branches:
+    - main
 jobs:
   deploy-to-cloud-storage:
     runs-on: ubuntu-latest
