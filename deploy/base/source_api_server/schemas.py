@@ -1,7 +1,7 @@
 from pydantic import BaseModel
-from typing import Optional, List
+from typing import Optional,List
 from pydantic import BaseModel
-from models import Order  # 실제 프로젝트의 모델 import
+from models import Order
 from datetime import datetime
 
 class OrderSchema(BaseModel):
@@ -14,7 +14,16 @@ class OrderSchema(BaseModel):
     order_delivered_customer_date: Optional[str] = None
     order_estimated_delivery_date: Optional[str] = None
     id: int
-
+    payment_sequential: int
+    payment_type:  Optional[str] = None
+    payment_installments: int
+    payment_value: float
+    order_item_id:  Optional[int] = None
+    product_id:  Optional[str] = None
+    seller_id:  Optional[str] = None
+    shipping_limit_date:  Optional[str] = None
+    price: float
+    freight_value: float
     class Config:
         from_attributes = True
 
