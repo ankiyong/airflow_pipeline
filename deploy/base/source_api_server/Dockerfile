@@ -7,8 +7,7 @@ RUN apt update \
     cron \
     vim \
     && apt clean \
-    && rm -rf /var/lib/apt/lists/* \
-
+    && rm -rf /var/lib/apt/lists/*
 RUN mkdir app
 WORKDIR /app
 COPY requirements.txt .
