@@ -19,7 +19,7 @@ jobs:
     - id: 'auth'
       uses: 'google-github-actions/auth@v2'
       with:
-        service_account_key: ${{ secrets.GCS_SERVICE_ACCOUNT_KEY }}
+        credentials_json: ${{ secrets.GCS_SERVICE_ACCOUNT_KEY }}
     - name: Deploy
       run: |-
         gsutil -m rsync -R ./static_data gs://olist_data_buckets/
