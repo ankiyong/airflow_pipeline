@@ -19,4 +19,4 @@ jobs:
 
     - name: Deploy
       run: |-
-        gsutil -m rsync -r /home/runner/work/data_streaming/data_streaming gs://olist_data_buckets/
+        gsutil -m rsync -r /home/runner/work/data_streaming/data_streaming/static_data gs://olist_data_buckets/
