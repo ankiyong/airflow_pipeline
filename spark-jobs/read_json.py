@@ -8,7 +8,7 @@ if __name__ == "__main__":
         print("################# 존재합니다. spark 시작합니다 #################")
         gcs_bucket = "olist_buckets"
         dt = datetime.datetime.now()
-        parquet_path = f"gs://{gcs_bucket}/orders/orders.parquet-{dt}"
+        parquet_path = f"gs://{gcs_bucket}/orders/orders.parquet"
         spark = (
             SparkSession.builder
             .appName("pyspark-gcs-connection")
@@ -35,6 +35,6 @@ if __name__ == "__main__":
             df = df.drop("id","order_estimated_delivery_date","order_approved_at","order_delivered_carrier_date")
             df = df.na.drop()
             df.show()
-            df.write.format("parquet").save(parquet_path)
+            df.write.mode("append").format("parquet").save(parquet_path)
     else:
         print("################# 존재하지 않습니다 #################")
