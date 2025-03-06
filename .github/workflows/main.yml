@@ -16,3 +16,7 @@ jobs:
       uses: 'google-github-actions/auth@v2'
       with:
         credentials_json: '${{ secrets.GCS_SERVICE_ACCOUNT_KEY }}'
+
+    - name: Deploy
+      run: |-
+        gsutil -m rsync -x "GCS에싱크하지 않을 목록" -R /home/runner/work/data_streaming/data_streaming/ststic_data gs://olist_data_buckets
