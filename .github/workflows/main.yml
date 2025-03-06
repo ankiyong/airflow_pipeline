@@ -16,7 +16,7 @@ jobs:
       uses: 'google-github-actions/auth@v2'
       with:
         workload_identity_provider: 'projects/95468451293/locations/global/workloadIdentityPools/github/providers/olist'
-        service_account: 'olist-dev'
+        service_account: 'olist-dev@olist-data-engineering.iam.gserviceaccount.com'
         project_id: 'olist-data-engineering'
     - id: 'upload-file'
       uses: 'google-github-actions/upload-cloud-storage@v2'
