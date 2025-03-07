@@ -52,22 +52,22 @@ def publish_to_pubsub():
         for msg in messages:
             encoded_data = json.loads(base64.b64decode(msg['message']['data']).decode('utf-8'))
             ack_id = msg['ack_id']
-            # data = json.loads(base64.b64decode(msg['message'].get('data')).decode('utf-8'))
-            # message = msg['message']
             delivery_attempt = msg['delivery_attempt']
-            # print(message)
+            publish_time = msg['message']['publish_time']
+            ordering_key = msg['message']['ordering_key']
             insert_data = PostgresOperator(
                 task_id = "postgres_insert",
                 postgres_conn_id = "olist_postgres_conn",
                 sql =
                     f"""
-                        INSERT INTO orders (
+                        INSERT INTO orolist_pubsub (
                             ack_id,delivery_attempt,
                             order_id, customer_id, order_status, order_purchase_timestamp,
                             order_approved_at, order_delivered_carrier_date, order_delivered_customer_date,
                             order_estimated_delivery_date, payment_sequential, payment_type,
                             payment_installments, payment_value, order_item_id, product_id, seller_id,
-                            shipping_limit_date, price, freight_value
+                            shipping_limit_date, price, freight_value,
+                            publish_time,ordering_key
                         ) VALUES (
                             '{ack_id}',
                             '{delivery_attempt}',
@@ -88,7 +88,9 @@ def publish_to_pubsub():
                             '{encoded_data["seller_id"] }',
                             '{encoded_data["shipping_limit_date"] }',
                             '{encoded_data["price"] }',
-                            '{encoded_data["freight_value"] }'
+                            '{encoded_data["freight_value"] }',
+                            '{publish_time}',
+                            '{ordering_key}'
                         )
                     """,
                 )
