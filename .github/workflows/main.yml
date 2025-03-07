@@ -21,7 +21,7 @@ jobs:
       run: |
         if git diff --quiet HEAD~1 HEAD -- static_data/; then
             echo "No changes in static_data, skipping rsync."
-          exit 0
+          exit 1
           echo "Changes detected in static_data, proceeding with rsync."
         fi
     - id: 'auth'
