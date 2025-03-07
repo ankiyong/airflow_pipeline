@@ -52,7 +52,7 @@ def publish_to_pubsub():
         for msg in messages:
             encoded_data = msg['message'].get('data')
             ack_id = msg['ack_id']
-            message = json.loads(msg['message'])
+            message = json.loads(base64.b64decode(data['data']).decode('utf-8'))
             delivery_attempt = msg['delivery_attempt']
             print(message)
             insert_data = PostgresOperator(
