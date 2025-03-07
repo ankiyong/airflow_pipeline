@@ -14,6 +14,9 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v2
+    - name: Fetch all git history
+      run: |
+        git fetch --prune --unshallow
     - name: Check if there are any changes in static_data
       run: |
         if git diff --quiet HEAD~1 HEAD -- static_data/; then
