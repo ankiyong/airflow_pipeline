@@ -16,12 +16,13 @@ jobs:
       uses: actions/checkout@v2
     - name: Check if there are any changes in static_data
       run: |
-        if git diff --quiet HEAD^ HEAD -- static_data/; then
-          echo "No changes in static_data, skipping rsync."
+        if git diff --quiet HEAD~1 HEAD -- static_data/; then
+            echo "No changes in static_data, skipping rsync."
           exit 0
           echo "Changes detected in static_data, proceeding with rsync."
         fi
     - id: 'auth'
+      if: success()
       uses: 'google-github-actions/auth@v2'
       with:
         workload_identity_provider: '${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}'
