@@ -20,7 +20,7 @@ def publish_to_pubsub():
         else:
             with open(last_value_path,encoding="utf-8") as file:
                 last_value = file.read()
-        interval = random.randrange(3,30)
+        interval = 10
         url = f"http://192.168.28.3:8000/orders/id/{int(last_value)}/{int(last_value)+interval}"
         with open(last_value_path, "w", encoding="utf-8") as file:
             file.write(f"{int(last_value)+interval}")
@@ -54,19 +54,12 @@ def publish_to_pubsub():
     subscribe_task = PubSubPullOperator(
         task_id='subscribe_message',
         subscription="order_data-sub",
-        project_id='data-streaming-olist',
+        project_id='olist-data-engineering',
         max_messages=100,
         gcp_conn_id="google_cloud_default",
         dag=dag
     )
 
-    # trigger_next_run = TriggerDagRunOperator(
-    #     task_id="trigger_next_run",
-    #     trigger_dag_id="publish_to_pubsub",
-    #     wait_for_completion=False,
-    # )
-
     data = get_order_data_after_last_value()
     data >> publish_task >> subscribe_task
-    # >> trigger_next_run
 publish_to_pubsub_dag = publish_to_pubsub()
