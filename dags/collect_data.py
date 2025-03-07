@@ -60,13 +60,14 @@ def publish_to_pubsub():
             delivery_attempt = msg['delivery_attempt']
             publish_time = msg['message']['publish_time']
             ordering_key = msg['message']['ordering_key']
+            load_timestamp = datetime.now()
             insert_data = PostgresOperator(
                 task_id = "postgres_insert",
                 postgres_conn_id = "olist_postgres_conn",
                 sql =
                     f"""
                         INSERT INTO pubsub.olist_pubsub (
-                            ack_id,delivery_attempt,
+                            ack_id,delivery_attempt,load_timestamp,
                             order_id, customer_id, order_status, order_purchase_timestamp,
                             order_approved_at, order_delivered_carrier_date, order_delivered_customer_date,
                             order_estimated_delivery_date, payment_sequential, payment_type,
@@ -76,6 +77,7 @@ def publish_to_pubsub():
                         ) VALUES (
                             '{ack_id}',
                             '{delivery_attempt}',
+                            '{load_timestamp},
                             '{decoded_data["order_id"] }',
                             '{decoded_data["customer_id"] }',
                             '{decoded_data["order_status"] }',
