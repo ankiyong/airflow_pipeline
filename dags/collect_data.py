@@ -51,21 +51,22 @@ def publish_to_pubsub():
             return
         for msg in messages:
             encoded_data = msg['message'].get('data')
-            if encoded_data:
-                decoded_data = base64.b64decode(encoded_data).decode('utf-8')
-                print(decoded_data)
-                ack_id = decoded_data['ack_id']
-                message = decoded_data['messages']
-                delivery_attempt = decoded_data['delivery_attempt']
-                insert_data = PostgresOperator(
-                    task_id = "postgres_insert",
-                    postgres_conn_id = "olist_postgres_conn",
-                    sql = f"""
-                        insert into olist_pubsub (ack_id,messages,delivery_attempt)
-                        values ({ack_id},{message},{delivery_attempt})
-                        """
-                    )
-                insert_data.execute(context={})
+            ack_id = msg['ack_id']
+            message = msg['messages']
+            delivery_attempt = msg['delivery_attempt']
+            insert_data = PostgresOperator(
+                task_id = "postgres_insert",
+                postgres_conn_id = "olist_postgres_conn",
+                sql = f"""
+                    insert into olist_pubsub (ack_id,messages,delivery_attempt)
+                    values ({ack_id},{message},{delivery_attempt})
+                    """
+                )
+            insert_data.execute(context={})
+            # if encoded_data:
+            #     decoded_data = base64.b64decode(encoded_data).decode('utf-8')
+            #     print(decoded_data)
+
 
     publish_task = PythonOperator(
         task_id = "publish_message",
