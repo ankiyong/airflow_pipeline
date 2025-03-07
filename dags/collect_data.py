@@ -50,23 +50,49 @@ def publish_to_pubsub():
             print("No messages received.")
             return
         for msg in messages:
-            encoded_data = msg['message'].get('data')
+            encoded_data = json.loads(base64.b64decode(msg['message'].get('data')).decode('utf-8'))
             ack_id = msg['ack_id']
             # data = json.loads(base64.b64decode(msg['message'].get('data')).decode('utf-8'))
-            message = msg['message']
+            # message = msg['message']
             delivery_attempt = msg['delivery_attempt']
-            print(message)
+            # print(message)
             insert_data = PostgresOperator(
                 task_id = "postgres_insert",
                 postgres_conn_id = "olist_postgres_conn",
-                sql = f"""
-                    insert into pubsub.olist_pubsub (ack_id,messages,delivery_attempt)
-                    values ('{ack_id}','{message}','{delivery_attempt}')
-                    """,                )
+                sql =
+                    f"""
+                        INSERT INTO orders (
+                            ack_id,delivery_attempt,
+                            order_id, customer_id, order_status, order_purchase_timestamp,
+                            order_approved_at, order_delivered_carrier_date, order_delivered_customer_date,
+                            order_estimated_delivery_date, payment_sequential, payment_type,
+                            payment_installments, payment_value, order_item_id, product_id, seller_id,
+                            shipping_limit_date, price, freight_value
+                        ) VALUES (
+                            '{ack_id}',
+                            '{delivery_attempt}',
+                            '{encoded_data["order_id"] }',
+                            '{encoded_data["customer_id"] }',
+                            '{encoded_data["order_status"] }',
+                            '{encoded_data["order_purchase_timestamp"] }',
+                            '{encoded_data["order_approved_at"] }',
+                            '{encoded_data["order_delivered_carrier_date"] }',
+                            '{encoded_data["order_delivered_customer_date"] }',
+                            '{encoded_data["order_estimated_delivery_date"] }',
+                            '{encoded_data["payment_sequential"] }',
+                            '{encoded_data["payment_type"] }',
+                            '{encoded_data["payment_installments"] }',
+                            '{encoded_data["payment_value"] }',
+                            '{encoded_data["order_item_id"] }',
+                            '{encoded_data["product_id"] }',
+                            '{encoded_data["seller_id"] }',
+                            '{encoded_data["shipping_limit_date"] }',
+                            '{encoded_data["price"] }',
+                            '{encoded_data["freight_value"] }'
+                        )
+                    """,
+                )
             insert_data.execute(context={})
-            # if encoded_data:
-            #     decoded_data = base64.b64decode(encoded_data).decode('utf-8')
-            #     print(decoded_data)
 
 
     publish_task = PythonOperator(
