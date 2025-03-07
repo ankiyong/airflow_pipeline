@@ -53,7 +53,7 @@ def publish_to_pubsub():
 
     subscribe_task = PubSubPullOperator(
         task_id='subscribe_message',
-        subscription="order_data-sub",
+        subscription="order-data-subscribe",
         project_id='olist-data-engineering',
         max_messages=100,
         gcp_conn_id="google_cloud_default",
