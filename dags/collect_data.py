@@ -53,6 +53,7 @@ def publish_to_pubsub():
             encoded_data = msg['message'].get('data')
             if encoded_data:
                 decoded_data = base64.b64decode(encoded_data).decode('utf-8')
+                print(decoded_data)
                 ack_id = decoded_data['ack_id']
                 message = decoded_data['messages']
                 delivery_attempt = decoded_data['delivery_attempt']
