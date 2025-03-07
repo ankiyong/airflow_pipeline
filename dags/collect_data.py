@@ -43,6 +43,10 @@ def publish_to_pubsub():
                 messages=[{'data': json_data}]
             )
             publish_task.execute(context={})
+    def convert_empty_string_to_null(data):
+        if isinstance(data, str) and data == '':
+            return None
+        return data
     def save_to_postgres(ti):
         messages = ti.xcom_pull(task_ids="subscribe_message")
 
@@ -51,6 +55,7 @@ def publish_to_pubsub():
             return
         for msg in messages:
             encoded_data = json.loads(base64.b64decode(msg['message']['data']).decode('utf-8'))
+            decoded_data = {key: convert_empty_string_to_null(value) for key, value in encoded_data.items()}
             ack_id = msg['ack_id']
             delivery_attempt = msg['delivery_attempt']
             publish_time = msg['message']['publish_time']
@@ -71,24 +76,24 @@ def publish_to_pubsub():
                         ) VALUES (
                             '{ack_id}',
                             '{delivery_attempt}',
-                            '{encoded_data["order_id"] }',
-                            '{encoded_data["customer_id"] }',
-                            '{encoded_data["order_status"] }',
-                            '{encoded_data["order_purchase_timestamp"] }',
-                            '{encoded_data["order_approved_at"] }',
-                            '{encoded_data["order_delivered_carrier_date"] }',
-                            '{encoded_data["order_delivered_customer_date"] }',
-                            '{encoded_data["order_estimated_delivery_date"] }',
-                            '{encoded_data["payment_sequential"] }',
-                            '{encoded_data["payment_type"] }',
-                            '{encoded_data["payment_installments"] }',
-                            '{encoded_data["payment_value"] }',
-                            '{encoded_data["order_item_id"] }',
-                            '{encoded_data["product_id"] }',
-                            '{encoded_data["seller_id"] }',
-                            '{encoded_data["shipping_limit_date"] }',
-                            '{encoded_data["price"] }',
-                            '{encoded_data["freight_value"] }',
+                            '{decoded_data["order_id"] }',
+                            '{decoded_data["customer_id"] }',
+                            '{decoded_data["order_status"] }',
+                            '{decoded_data["order_purchase_timestamp"] }',
+                            '{decoded_data["order_approved_at"] }',
+                            '{decoded_data["order_delivered_carrier_date"] }',
+                            '{decoded_data["order_delivered_customer_date"] }',
+                            '{decoded_data["order_estimated_delivery_date"] }',
+                            '{decoded_data["payment_sequential"] }',
+                            '{decoded_data["payment_type"] }',
+                            '{decoded_data["payment_installments"] }',
+                            '{decoded_data["payment_value"] }',
+                            '{decoded_data["order_item_id"] }',
+                            '{decoded_data["product_id"] }',
+                            '{decoded_data["seller_id"] }',
+                            '{decoded_data["shipping_limit_date"] }',
+                            '{decoded_data["price"] }',
+                            '{decoded_data["freight_value"] }',
                             '{publish_time}',
                             '{ordering_key}'
                         )
