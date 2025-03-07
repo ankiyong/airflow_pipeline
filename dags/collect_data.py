@@ -1,8 +1,9 @@
 from airflow import DAG
-from airflow.providers.google.cloud.operators.pubsub import PubSubPublishMessageOperator
+from airflow.providers.google.cloud.operators.pubsub import PubSubPublishMessageOperator,PubSubPullOperator
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from airflow.operators.python_operator import PythonOperator
-import requests,json
+from airflow.providers.postgres.operators.postgres import PostgresOperator
+import requests,json,base64
 from datetime import datetime,timedelta
 import os,random
 from airflow.decorators import task, dag
@@ -43,17 +44,49 @@ def publish_to_pubsub():
             )
             publish_task.execute(context={})
 
+    # def process_messages(ti):
+    #     messages = ti.xcom_pull(task_ids="subscribe_message")
+
+    #     if not messages:
+    #         print("No messages received.")
+    #         return
+    #     data = []
+    #     for msg in messages:
+    #         encoded_data = msg['message'].get('data')
+    #         if encoded_data:
+    #             decoded_data = base64.b64decode(encoded_data).decode('utf-8')
+    #             insert_data = PostgresOperator(
+    #                 task_id='insert_data',
+    #                 postgres_conn_id='postgres_default_connection',
+    #                 sql="""
+    #                     insert into pubsub_dataset ()
+    #                     """
+    #             )
+    #             data.append(decoded_data)
+    #     ti.xcom_push(key="return_value",value=data)
+
     publish_task = PythonOperator(
         task_id = "publish_message",
         python_callable=publish_data,
         provide_context=True,
     )
-    trigger_next_run = TriggerDagRunOperator(
-        task_id="trigger_next_run",
-        trigger_dag_id="publish_to_pubsub",
-        wait_for_completion=False,
+
+    subscribe_task = PubSubPullOperator(
+        task_id='subscribe_message',
+        subscription="order_data-sub",
+        project_id='data-streaming-olist',
+        max_messages=100,
+        gcp_conn_id="google_cloud_default",
+        dag=dag
     )
 
+    # trigger_next_run = TriggerDagRunOperator(
+    #     task_id="trigger_next_run",
+    #     trigger_dag_id="publish_to_pubsub",
+    #     wait_for_completion=False,
+    # )
+
     data = get_order_data_after_last_value()
-    data >> publish_task >> trigger_next_run
+    data >> publish_task >> subscribe_task
+    # >> trigger_next_run
 publish_to_pubsub_dag = publish_to_pubsub()
