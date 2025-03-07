@@ -44,26 +44,6 @@ def publish_to_pubsub():
             )
             publish_task.execute(context={})
 
-    # def process_messages(ti):
-    #     messages = ti.xcom_pull(task_ids="subscribe_message")
-
-    #     if not messages:
-    #         print("No messages received.")
-    #         return
-    #     data = []
-    #     for msg in messages:
-    #         encoded_data = msg['message'].get('data')
-    #         if encoded_data:
-    #             decoded_data = base64.b64decode(encoded_data).decode('utf-8')
-    #             insert_data = PostgresOperator(
-    #                 task_id='insert_data',
-    #                 postgres_conn_id='postgres_default_connection',
-    #                 sql="""
-    #                     insert into pubsub_dataset ()
-    #                     """
-    #             )
-    #             data.append(decoded_data)
-    #     ti.xcom_push(key="return_value",value=data)
 
     publish_task = PythonOperator(
         task_id = "publish_message",
