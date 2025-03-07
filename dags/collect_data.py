@@ -81,7 +81,7 @@ def publish_to_pubsub():
     )
 
     postgres_task = PythonOperator(
-        task_id = "data_to_postgres",
+        task_id = "save_to_postgres",
         python_callable = save_to_postgres,
         provide_context = True
     )
