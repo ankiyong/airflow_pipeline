@@ -57,7 +57,6 @@ def publish_to_pubsub():
         project_id='olist-data-engineering',
         max_messages=100,
         gcp_conn_id="google_cloud_default",
-        dag=dag
     )
 
     data = get_order_data_after_last_value()
