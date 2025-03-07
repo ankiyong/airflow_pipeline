@@ -50,7 +50,7 @@ def publish_to_pubsub():
             print("No messages received.")
             return
         for msg in messages:
-            encoded_data = json.loads(base64.b64decode(msg['message'].get(data)).decode('utf-8'))
+            encoded_data = json.loads(base64.b64decode(msg['message']['data']).decode('utf-8'))
             ack_id = msg['ack_id']
             # data = json.loads(base64.b64decode(msg['message'].get('data')).decode('utf-8'))
             # message = msg['message']
