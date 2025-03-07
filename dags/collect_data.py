@@ -58,15 +58,9 @@ def publish_to_pubsub():
                 task_id = "postgres_insert",
                 postgres_conn_id = "olist_postgres_conn",
                 sql = f"""
-                    insert into pubsub.olist_pubsub (ack_id,messages,delivery_attempt)
-                    values ('{ack_id}',{message}::jsonb,'{delivery_attempt}')
-                    """,
-                parameters=(
-                    "BhYsXUZIUTcZCGhRDk9eIz81IChFEQtTE1FccQdIVDsCA2gGUWIZcn1hdWtTFgd...",
-                    json.dumps(message),  # JSON을 문자열로 변환하여 삽입
-                    0
-                   )
-                )
+                    insert into pubsub.olist_pubsub (ack_id,delivery_attempt)
+                    values ('{ack_id}','{delivery_attempt}')
+                    """,                )
             insert_data.execute(context={})
             # if encoded_data:
             #     decoded_data = base64.b64decode(encoded_data).decode('utf-8')
