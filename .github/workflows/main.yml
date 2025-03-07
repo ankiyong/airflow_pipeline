@@ -1,6 +1,8 @@
 name: git to gcs
 on:
   push:
+    path:
+    - 'static_data/**'
     branches:
     - main
 jobs:
