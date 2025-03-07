@@ -59,8 +59,13 @@ def publish_to_pubsub():
                 postgres_conn_id = "olist_postgres_conn",
                 sql = f"""
                     insert into pubsub.olist_pubsub (ack_id,messages,delivery_attempt)
-                    values ('{ack_id}','{message}','{delivery_attempt}')
-                    """
+                    values ('{ack_id}',{message}::jsonb,'{delivery_attempt}')
+                    """,
+                parameters=(
+                    "BhYsXUZIUTcZCGhRDk9eIz81IChFEQtTE1FccQdIVDsCA2gGUWIZcn1hdWtTFgd...",
+                    json.dumps(message),  # JSON을 문자열로 변환하여 삽입
+                    0
+                   )
                 )
             insert_data.execute(context={})
             # if encoded_data:
