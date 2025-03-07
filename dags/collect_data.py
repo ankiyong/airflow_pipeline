@@ -52,14 +52,15 @@ def publish_to_pubsub():
         for msg in messages:
             encoded_data = msg['message'].get('data')
             ack_id = msg['ack_id']
-            message = msg['message']
+            message = json.loads(msg['message'])
             delivery_attempt = msg['delivery_attempt']
+            print(message)
             insert_data = PostgresOperator(
                 task_id = "postgres_insert",
                 postgres_conn_id = "olist_postgres_conn",
                 sql = f"""
-                    insert into pubsub.olist_pubsub (ack_id,delivery_attempt)
-                    values ('{ack_id}','{delivery_attempt}')
+                    insert into pubsub.olist_pubsub (ack_id,messages,delivery_attempt)
+                    values ('{ack_id}','{message}','{delivery_attempt}')
                     """,                )
             insert_data.execute(context={})
             # if encoded_data:
