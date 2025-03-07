@@ -43,7 +43,28 @@ def publish_to_pubsub():
                 messages=[{'data': json_data}]
             )
             publish_task.execute(context={})
+    def save_to_postgres(ti):
+        messages = ti.xcom_pull(task_ids="subscribe_message")
 
+        if not messages:
+            print("No messages received.")
+            return
+        data = []
+        for msg in messages:
+            encoded_data = msg['message'].get('data')
+            if encoded_data:
+                decoded_data = base64.b64decode(encoded_data).decode('utf-8')
+                ack_id = decoded_data['ack_id']
+                message = decoded_data['messages']
+                delivery_attempt = decoded_data['delivery_attempt']
+                insert_data = PostgresOperator(
+                    task_id = "postgres_insert",
+                    postgres_conn_id = "olist_postgres_conn",
+                    sql = f"""
+                        insert into olist_pubsub (ack_id,messages,delivery_attempt)
+                        values ({ack_id},{message},{delivery_attempt})
+                        """
+                )
 
     publish_task = PythonOperator(
         task_id = "publish_message",
@@ -59,6 +80,12 @@ def publish_to_pubsub():
         gcp_conn_id="google_cloud_default",
     )
 
+    postgres_task = PythonOperator(
+        task_id = "data_to_postgres",
+        python_callable = save_to_postgres,
+        provide_context = True
+    )
+
     data = get_order_data_after_last_value()
-    data >> publish_task >> subscribe_task
+    data >> publish_task >> subscribe_task >> postgres_task
 publish_to_pubsub_dag = publish_to_pubsub()
