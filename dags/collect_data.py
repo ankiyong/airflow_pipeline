@@ -49,17 +49,6 @@ def publish_to_pubsub():
         return data
     def save_to_postgres(ti):
         messages = ti.xcom_pull(task_ids="subscribe_message")
-        insert_query = """
-            INSERT INTO pubsub.olist_pubsub (
-                ack_id, delivery_attempt, order_id, customer_id, order_status, order_purchase_timestamp,
-                order_approved_at, order_delivered_carrier_date, order_delivered_customer_date,
-                order_estimated_delivery_date, payment_sequential, payment_type, payment_installments,
-                payment_value, order_item_id, product_id, seller_id, shipping_limit_date, price, freight_value,
-                publish_time, ordering_key
-            ) VALUES (
-                %s, %s, %s, %s, %s, NULLIF(%s, ''), NULLIF(%s, ''), NULLIF(%s, ''), NULLIF(%s, ''), NULLIF(%s, ''), %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
-            )
-        """
 
         if not messages:
             print("No messages received.")
@@ -71,70 +60,44 @@ def publish_to_pubsub():
             delivery_attempt = msg['delivery_attempt']
             publish_time = msg['message']['publish_time']
             ordering_key = msg['message']['ordering_key']
-            insert_parameters = (
-                ack_id,
-                delivery_attempt,
-                decoded_data.get("order_id"),
-                decoded_data.get("customer_id"),
-                decoded_data.get("order_status"),
-                decoded_data.get("order_purchase_timestamp"),
-                decoded_data.get("order_approved_at"),
-                decoded_data.get("order_delivered_carrier_date"),
-                decoded_data.get("order_delivered_customer_date"),
-                decoded_data.get("order_estimated_delivery_date"),
-                decoded_data.get("payment_sequential"),
-                decoded_data.get("payment_type"),
-                decoded_data.get("payment_installments"),
-                decoded_data.get("payment_value"),
-                decoded_data.get("order_item_id"),
-                decoded_data.get("product_id"),
-                decoded_data.get("seller_id"),
-                decoded_data.get("shipping_limit_date"),
-                decoded_data.get("price"),
-                decoded_data.get("freight_value"),
-                publish_time,
-                ordering_key
-            )
             insert_data = PostgresOperator(
                 task_id = "postgres_insert",
                 postgres_conn_id = "olist_postgres_conn",
-                sql=insert_query,
-                parameters=insert_parameters,
-                # sql =
-                #     f"""
-                #         INSERT INTO pubsub.olist_pubsub (
-                #             ack_id,delivery_attempt,
-                #             order_id, customer_id, order_status, order_purchase_timestamp,
-                #             order_approved_at, order_delivered_carrier_date, order_delivered_customer_date,
-                #             order_estimated_delivery_date, payment_sequential, payment_type,
-                #             payment_installments, payment_value, order_item_id, product_id, seller_id,
-                #             shipping_limit_date, price, freight_value,
-                #             publish_time,ordering_key
-                #         ) VALUES (
-                #             '{ack_id}',
-                #             '{delivery_attempt}',
-                #             '{decoded_data["order_id"] }',
-                #             '{decoded_data["customer_id"] }',
-                #             '{decoded_data["order_status"] }',
-                #             '{decoded_data["order_purchase_timestamp"] }',
-                #             '{decoded_data["order_approved_at"] }',
-                #             '{decoded_data["order_delivered_carrier_date"] }',
-                #             '{decoded_data["order_delivered_customer_date"] }',
-                #             '{decoded_data["order_estimated_delivery_date"] }',
-                #             '{decoded_data["payment_sequential"] }',
-                #             '{decoded_data["payment_type"] }',
-                #             '{decoded_data["payment_installments"] }',
-                #             '{decoded_data["payment_value"] }',
-                #             '{decoded_data["order_item_id"] }',
-                #             '{decoded_data["product_id"] }',
-                #             '{decoded_data["seller_id"] }',
-                #             '{decoded_data["shipping_limit_date"] }',
-                #             '{decoded_data["price"] }',
-                #             '{decoded_data["freight_value"] }',
-                #             '{publish_time}',
-                #             '{ordering_key}'
-                #         )
-                #     """,
+                sql =
+                    f"""
+                        INSERT INTO pubsub.olist_pubsub (
+                            ack_id,delivery_attempt,
+                            order_id, customer_id, order_status, order_purchase_timestamp,
+                            order_approved_at, order_delivered_carrier_date, order_delivered_customer_date,
+                            order_estimated_delivery_date, payment_sequential, payment_type,
+                            payment_installments, payment_value, order_item_id, product_id, seller_id,
+                            shipping_limit_date, price, freight_value,
+                            publish_time,ordering_key
+                        ) VALUES (
+                            '{ack_id}',
+                            '{delivery_attempt}',
+                            '{decoded_data["order_id"] }',
+                            '{decoded_data["customer_id"] }',
+                            '{decoded_data["order_status"] }',
+                            '{decoded_data["order_purchase_timestamp"] }',
+                            '{decoded_data["order_approved_at"] }',
+                            'NULLIF({decoded_data["order_delivered_carrier_date"] },'')',
+                            'NULLIF({decoded_data["order_delivered_customer_date"] },'')',
+                            '{decoded_data["order_estimated_delivery_date"] }',
+                            '{decoded_data["payment_sequential"] }',
+                            '{decoded_data["payment_type"] }',
+                            '{decoded_data["payment_installments"] }',
+                            '{decoded_data["payment_value"] }',
+                            '{decoded_data["order_item_id"] }',
+                            '{decoded_data["product_id"] }',
+                            '{decoded_data["seller_id"] }',
+                            '{decoded_data["shipping_limit_date"] }',
+                            '{decoded_data["price"] }',
+                            '{decoded_data["freight_value"] }',
+                            '{publish_time}',
+                            '{ordering_key}'
+                        )
+                    """,
                 )
             insert_data.execute(context={})
 
