@@ -49,7 +49,6 @@ def publish_to_pubsub():
         if not messages:
             print("No messages received.")
             return
-        data = []
         for msg in messages:
             encoded_data = msg['message'].get('data')
             if encoded_data:
@@ -64,7 +63,8 @@ def publish_to_pubsub():
                         insert into olist_pubsub (ack_id,messages,delivery_attempt)
                         values ({ack_id},{message},{delivery_attempt})
                         """
-                )
+                    )
+                insert_data.execute(context={})
 
     publish_task = PythonOperator(
         task_id = "publish_message",
