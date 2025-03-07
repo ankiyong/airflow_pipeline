@@ -59,7 +59,7 @@ def publish_to_pubsub():
                 postgres_conn_id = "olist_postgres_conn",
                 sql = f"""
                     insert into pubsub.olist_pubsub (ack_id,messages,delivery_attempt)
-                    values ("{ack_id}","{message}","{delivery_attempt}")
+                    values ('{ack_id}','{message}','{delivery_attempt}')
                     """
                 )
             insert_data.execute(context={})
