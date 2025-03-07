@@ -115,8 +115,14 @@ def publish_to_pubsub():
         task_id = "save_to_postgres",
         python_callable = save_to_postgres,
         provide_context = True
+)
+    trigger_next_run = TriggerDagRunOperator(
+        task_id="trigger_next_run",
+        trigger_dag_id="publish_to_pubsub",
+        wait_for_completion=False,
     )
 
+
     data = get_order_data_after_last_value()
-    data >> publish_task >> subscribe_task >> postgres_task
+    data >> publish_task >> subscribe_task >> postgres_task >> trigger_next_run
 publish_to_pubsub_dag = publish_to_pubsub()
