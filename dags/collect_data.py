@@ -37,8 +37,8 @@ def publish_to_pubsub():
             json_data = json.dumps(d).encode("utf-8")
             publish_task = PubSubPublishMessageOperator(
                 task_id='publish_message',
-                project_id='data-streaming-olist',
-                topic='order_data',
+                project_id='olist-data-engineering',
+                topic='olist_dataset',
                 messages=[{'data': json_data}]
             )
             publish_task.execute(context={})
