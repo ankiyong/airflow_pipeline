@@ -60,7 +60,7 @@ def publish_to_pubsub():
                 postgres_conn_id = "olist_postgres_conn",
                 sql =
                     f"""
-                        INSERT INTO orolist_pubsub (
+                        INSERT INTO olist_pubsub (
                             ack_id,delivery_attempt,
                             order_id, customer_id, order_status, order_purchase_timestamp,
                             order_approved_at, order_delivered_carrier_date, order_delivered_customer_date,
