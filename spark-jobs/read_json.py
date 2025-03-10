@@ -41,6 +41,7 @@ def get_df(sql):
     return df
 
 if __name__ == "__main__":
+    print(os.listdir("/opt/spark/data")
     last_value_file_path = "/opt/spark/data/publish_last_value.txt"
     spark = spark_sess()
 
