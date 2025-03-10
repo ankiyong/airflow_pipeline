@@ -11,6 +11,7 @@ spec:
   imagePullPolicy: IfNotPresent
   mainApplicationFile: local:///opt/spark/jobs/read_json.py # 이미지 내의 jar 파일
   sparkVersion: 3.5.3
+
   volumes:
     - name: spark-jobs
       hostPath:
@@ -18,7 +19,7 @@ spec:
     - name: data
       hostPath:
         path: /home/aky/data
-
+  
   driver:
     labels:
       version: 3.5.3
