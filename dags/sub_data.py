@@ -27,8 +27,8 @@ dag = DAG(
     catchup=False,
 )
 def decide_next_task(**kwargs):
-    result = kwargs['ti'].xcom_pull(key="return_value")[0][0]
-    if result and int(result) > 0:
+    result = kwargs['ti'].xcom_pull(key="return_value")[0]
+    if result and len(result) > 0:
         return "spark-process"
     return "end_task"
 
@@ -36,7 +36,7 @@ def message_cnt():
     f = open("/opt/airflow/logs/publish_last_value.txt",'r')
     publish_last_value = f.read()
     return publish_last_value
-    
+
 publish_last_value = message_cnt()
 
 get_data = PostgresOperator(
@@ -45,7 +45,7 @@ get_data = PostgresOperator(
     parameters={"publish_last_value": publish_last_value},
     sql = f"""
         SELECT
-            count(order_id)
+            *
         FROM
             pubsub.olist_pubsub
         WHERE
