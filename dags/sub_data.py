@@ -31,7 +31,7 @@ def decide_next_task(**context):
     task_instance = context['task_instance']
     result = context['task_instance'].xcom_pull(key="return_value")
     if result and len(result[0]) > 0:
-        task_instance.xcom_push(key="return_value")
+        task_instance.xcom_push(key="return_value",value=result)
         return "save_to_json"
     return "end_task"
 
