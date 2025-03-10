@@ -11,9 +11,7 @@ spec:
   imagePullPolicy: IfNotPresent
   mainApplicationFile: local:///opt/spark/jobs/read_json.py # 이미지 내의 jar 파일
   sparkVersion: 3.5.3
-  deps:
-    jars: 
-      - /opt/spark/data/postgresql-42.7.5.jar
+
   volumes:
     - name: spark-jobs
       hostPath:
