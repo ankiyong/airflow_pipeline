@@ -35,21 +35,23 @@ def decide_next_task(**kwargs):
 def message_cnt():
     f = open("/opt/airflow/logs/publish_last_value.txt",'r')
     publish_last_value = f.read()
-    get_data = PostgresOperator(
-        task_id = "postgres_check",
-        postgres_conn_id = "olist_postgres_conn",
-        do_xcom_push = True,
-        sql = f"""
-            SELECT
-                count(order_id)
-            FROM
-                pubsub.olist_pubsub
-            WHERE
-                publish_time > TO_TIMESTAMP('{publish_last_value}', 'YYYY-MM-DD HH24:MI:SS.MS')
-            """
-        )
-    get_data.execute(context={})
+    return publish_last_value
+    
+publish_last_value = message_cnt()
 
+get_data = PostgresOperator(
+    task_id = "postgres_check",
+    postgres_conn_id = "olist_postgres_conn",
+    parameters={"publish_last_value": publish_last_value},
+    sql = f"""
+        SELECT
+            count(order_id)
+        FROM
+            pubsub.olist_pubsub
+        WHERE
+            publish_time > TO_TIMESTAMP('{publish_last_value}', 'YYYY-MM-DD HH24:MI:SS.MS')
+        """
+)
 branch_task = BranchPythonOperator(
     task_id="branch_task",
     python_callable=decide_next_task,
@@ -79,5 +81,5 @@ spark_process = SparkKubernetesOperator(
     dag=dag
 )
 
-postgres_task >> branch_task
+get_data >> branch_task
 branch_task >> [spark_process, end_task]
