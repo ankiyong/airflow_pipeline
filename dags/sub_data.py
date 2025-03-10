@@ -31,7 +31,7 @@ def decide_next_task(**context):
     task_instance = context['task_instance']
     result = context['task_instance'].xcom_pull(key="return_value")
     if result and len(result[0]) > 0:
-        task_instance.xcom_push(key="return_value",value=result)
+        task_instance.xcom_push(key="query_results",value=result)
         return "save_to_json"
     return "end_task"
 
@@ -41,7 +41,7 @@ def message_cnt():
     return publish_last_value
 
 def save_to_json(**context):
-    data = context['task_instance'].xcom_pull(key="return_value")
+    data = context['task_instance'].xcom_pull(key="query_results")
     json_file_path = "/opt/airflow/data/xcom_data.json"
     with open(json_file_path, "w") as json_file:
         json.dump(data, json_file, indent=4)
