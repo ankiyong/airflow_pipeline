@@ -12,8 +12,7 @@ spec:
   mainApplicationFile: local:///opt/spark/jobs/read_json.py # 이미지 내의 jar 파일
   sparkVersion: 3.5.3
   deps:
-    jars:
-      - local:///opt/spark/work-dir/*.jar
+    jars: /opt/spark/work-dir/*.jar
   volumes:
     - name: spark-jobs
       hostPath:
