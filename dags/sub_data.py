@@ -1,12 +1,12 @@
 from airflow import DAG
 from airflow.operators.python_operator import PythonOperator
 from airflow.providers.google.cloud.operators.pubsub import PubSubPullOperator
-from airflow.sensors.time_delta import TimeDeltaSensor
 from airflow.decorators import dag
 from airflow.providers.cncf.kubernetes.operators.spark_kubernetes import SparkKubernetesOperator
-from airflow.operators.trigger_dagrun import TriggerDagRunOperator
+from airflow.providers.postgres.operators.postgres import PostgresOperator
+from airflow.operators.python import BranchPythonOperator
+from airflow.operators.dummy import DummyOperator
 from datetime import datetime, timedelta
-import json,base64
 
 PROJECT_ID = "data-streaming-olist"
 SUBSCRIPTION_NAME = "order_data-sub"
@@ -23,54 +23,47 @@ default_args = {
 dag = DAG(
     "spark_and_gcs",
     default_args=default_args,
-    schedule_interval=None,
+    schedule_interval="* * * * * *",
     catchup=False,
 )
+def decide_next_task(**kwargs):
+    result = kwargs['ti'].xcom_pull(task_ids="get_data")  # XCom에서 결과 가져오기
+    if result and int(result) > 0:
+        return "spark-process"
+    return "end_task"
 
-def process_messages(ti):
-    messages = ti.xcom_pull(task_ids="subscribe_message")
+def message_cnt():
+    f = open("/opt/airflow/logs/publish_last_value.txt",'r')
+    publish_last_value = f.read()
+    get_data = PostgresOperator(
+        task_id = "postgres_check",
+        postgres_conn_id = "olist_postgres_conn",
+        sql = f"""
+            SELECT
+                cnt(order_id)
+            FROM
+                pubsub.olist_pubsub
+            WHERE
+                publish_time > TO_TIMESTAMP('{publish_last_value}', 'YYYY-MM-DD HH24:MI:SS.MS')
+            """
+        )
+    get_data.execute(context={})
 
-    if not messages:
-        print("No messages received.")
-        return
-    data = []
-    for msg in messages:
-        encoded_data = msg['message'].get('data')
-        if encoded_data:
-            decoded_data = base64.b64decode(encoded_data).decode('utf-8')
-            data.append(decoded_data)
-    ti.xcom_push(key="return_value",value=data)
-
-def save_xcom_to_json(ti):
-    data = ti.xcom_pull(task_ids="save_messages_to_file",key="return_value")
-    file_path = "/opt/airflow/logs/xcom_data.json"
-    with open(file_path,"w") as f:
-        json.dump(data,f,indent=4)
-
-
-subscribe_task = PubSubPullOperator(
-    task_id='subscribe_message',
-    subscription="order_data-sub",
-    project_id='data-streaming-olist',
-    max_messages=100,
-    gcp_conn_id="google_cloud_default",
+branch_task = BranchPythonOperator(
+    task_id="branch_task",
+    python_callable=decide_next_task,
+    provide_context=True,
     dag=dag
 )
 
-process_messages = PythonOperator(
-    task_id="save_messages_to_file",
-    depends_on_past=True,
-    python_callable=process_messages,
-    provide_context=True,
-    dag=dag,
-)
-
-save_to_json=PythonOperator(
-    task_id="save_to_json",
-    depends_on_past=True,
-    python_callable=save_xcom_to_json,
-    provide_context=True,
+end_task = DummyOperator(
+    task_id="end_task",
     dag=dag
+)
+postgres_task = PythonOperator(
+    task_id = "get_data",
+    python_callable = message_cnt,
+    provide_context = True
 )
 
 spark_process = SparkKubernetesOperator(
@@ -85,15 +78,5 @@ spark_process = SparkKubernetesOperator(
     dag=dag
 )
 
-wait = TimeDeltaSensor(
-    task_id="wait_5_seconds",
-    delta=timedelta(seconds=10)
-)
-
-trigger_next_run = TriggerDagRunOperator(
-    task_id="trigger_next_run",
-    trigger_dag_id="spark_and_gcs",
-    wait_for_completion=False,
-)
-
-subscribe_task >> process_messages >> save_to_json >> spark_process >> wait >> trigger_next_run
+postgres_task >> branch_task
+branch_task >> [spark_process, end_task]
