@@ -1,8 +1,12 @@
 from pyspark.sql import SparkSession
-import json,os,datetime
+import json,os,datetime,shutil
 from pyspark.sql.functions import col,to_timestamp,unix_timestamp,floor
 from functools import reduce
 from dotenv import load_dotenv
+
+source_file = "/opt/spark/data/postgresql-42.7.5.jar"
+target_dir = "/opt/spark/jars"
+shutil.copy(source_file, target_dir)
 def spark_sess():
     spark = (
         SparkSession.builder
@@ -30,21 +34,10 @@ def write_last_value(last_value,value):
     f = open(last_value,'w')
     f.write(value)
 
-def get_df(sql,driver):
-    spark = (
-        SparkSession.builder
-        .appName("pyspark-gcs-connection")
-        .master("local[*]")
-        .config("spark.jars", "/opt/spark/data/gcs-connector-hadoop3-2.2.9-shaded.jar")
-        .config("spark.hadoop.fs.gs.impl", "com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem")
-        .config("spark.hadoop.google.cloud.auth.service.account.enable", "true")
-        .config("spark.hadoop.google.cloud.auth.service.account.json.keyfile", "/opt/spark/data/key.json")
-        .config("spark.driver.extraClassPath", "/opt/spark/data/postgresql-42.7.5.jar") \
-        .getOrCreate()
-        )
+def get_df(sql):
     df = spark.read.format("jdbc") \
                 .option("url", f"jdbc:postgresql://192.168.28.3:5431/postgres") \
-                .option("driver", driver) \
+                .option("driver", "ort.postgresql.Driver") \
                 .option("query", sql) \
                 .option("user", "postgres") \
                 .option("password", "postgres") \
@@ -54,7 +47,7 @@ def get_df(sql,driver):
 if __name__ == "__main__":
     print(os.listdir("/opt/spark/data"))
     last_value_file_path = "/opt/spark/data/publish_last_value.txt"
-    # spark = spark_sess()
+    spark = spark_sess()
     driver = os.environ.get('DRIVER')
 
     #last valeu 불러오기
