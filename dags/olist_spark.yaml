@@ -13,7 +13,7 @@ spec:
   sparkVersion: 3.5.3
   deps:
     jars:
-      - local:///opt/spark/*.jar
+      - local:///opt/spark/work-dir/*.jar
   volumes:
     - name: spark-jobs
       hostPath:
