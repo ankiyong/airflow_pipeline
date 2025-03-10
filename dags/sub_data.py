@@ -27,7 +27,7 @@ dag = DAG(
     catchup=False,
 )
 def decide_next_task(**kwargs):
-    result = kwargs['ti'].xcom_pull(task_ids="get_data")  # XCom에서 결과 가져오기
+    result = kwargs['ti'].xcom_pull(key="return_value")[0][0]
     if result and int(result) > 0:
         return "spark-process"
     return "end_task"
