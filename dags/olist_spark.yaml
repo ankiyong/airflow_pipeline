@@ -4,6 +4,11 @@ metadata:
   name: spark-pi
   namespace: default
 spec:
+  deps:
+    repositories:
+      - https://mvnrepository.com/artifact/org.postgresql/postgresql
+    packages:
+      - org.postgresql:postgresql:jar:42.7.5
   timeToLiveSeconds: 60 # Completed 상태의 pod를 60초 후에 삭제
   type: Python
   mode: cluster
@@ -19,7 +24,7 @@ spec:
     - name: data
       hostPath:
         path: /home/aky/data
-  
+
   driver:
     labels:
       version: 3.5.3

@@ -47,7 +47,7 @@ if __name__ == "__main__":
     target_dir = "/opt/spark/jars/postgresql-42.7.5.jar"
     os.system("cp /opt/spark/data/postgresql-42.7.5.jar /opt/spark/jars")
     shutil.copy(source_file, target_dir)
-    time.sleep(300000)
+    time.sleep(30)
     # print(os.listdir("/opt/spark/jars"))
     last_value_file_path = "/opt/spark/data/publish_last_value.txt"
     spark = (

@@ -40,12 +40,10 @@ def message_cnt():
     publish_last_value = f.read()
     return publish_last_value
 
-def save_to_json(**context):
+def save_to_csv(**context):
     data = context['task_instance'].xcom_pull(key="query_results")
-    json_file_path = "/opt/airflow/logs/xcom_data.csv"
-    # with open(json_file_path, "w") as json_file:
-        # json.dump(data, json_file, indent=4)
-    with open(json_file_path, "w", newline="") as csv_file:
+    csv_file_path = "/opt/airflow/logs/xcom_data.csv"
+    with open(csv_file_path, "w", newline="") as csv_file:
         writer = csv.writer(csv_file)
         writer.writerows(data)
 
@@ -65,9 +63,9 @@ get_data = PostgresOperator(
         """
 )
 
-save_to_json = PythonOperator(
+save_to_csv = PythonOperator(
     task_id = "save_to_json",
-    python_callable = save_to_json,
+    python_callable = save_to_csv,
     provide_context = True
 )
 
@@ -101,4 +99,5 @@ spark_process = SparkKubernetesOperator(
 )
 
 get_data >> branch_task
-branch_task >> [save_to_json, end_task]
+branch_task >> [save_to_csv, end_task]
+save_to_csv >> spark_process
