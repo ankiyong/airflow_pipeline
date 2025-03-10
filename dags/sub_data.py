@@ -30,7 +30,7 @@ dag = DAG(
 def decide_next_task(**context):
     task_instance = context['task_instance']
     result = context['task_instance'].xcom_pull(key="return_value")
-    if result and len(result)[0] > 0:
+    if result and len(result[0]) > 0:
         task_instance.xcom_push(key="return_value")
         return "save_to_json"
     return "end_task"
