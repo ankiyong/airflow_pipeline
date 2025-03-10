@@ -2,7 +2,7 @@ from pyspark.sql import SparkSession
 import json,os,datetime
 from pyspark.sql.functions import col,to_timestamp,unix_timestamp,floor
 from functools import reduce
-
+from dotenv import load_dotenv
 def spark_sess():
     spark = (
         SparkSession.builder
@@ -30,10 +30,21 @@ def write_last_value(last_value,value):
     f = open(last_value,'w')
     f.write(value)
 
-def get_df(sql):
+def get_df(sql,driver):
+    spark = (
+        SparkSession.builder
+        .appName("pyspark-gcs-connection")
+        .master("local[*]")
+        .config("spark.jars", "/opt/spark/data/gcs-connector-hadoop3-2.2.9-shaded.jar")
+        .config("spark.hadoop.fs.gs.impl", "com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem")
+        .config("spark.hadoop.google.cloud.auth.service.account.enable", "true")
+        .config("spark.hadoop.google.cloud.auth.service.account.json.keyfile", "/opt/spark/data/key.json")
+        .config("spark.driver.extraClassPath", "/opt/spark/data/postgresql-42.7.5.jar") \
+        .getOrCreate()
+        )
     df = spark.read.format("jdbc") \
                 .option("url", f"jdbc:postgresql://192.168.28.3:5431/postgres") \
-                .option("driver", "org.postgresql.Driver") \
+                .option("driver", driver) \
                 .option("query", sql) \
                 .option("user", "postgres") \
                 .option("password", "postgres") \
@@ -41,16 +52,17 @@ def get_df(sql):
     return df
 
 if __name__ == "__main__":
-    print(os.listdir("/opt/spark/data")
+    print(os.listdir("/opt/spark/data"))
     last_value_file_path = "/opt/spark/data/publish_last_value.txt"
-    spark = spark_sess()
+    # spark = spark_sess()
+    driver = os.environ.get('DRIVER')
 
     #last valeu 불러오기
     publish_last_value = get_last_value(last_value_file_path)
     print(publish_last_value)
     #sql 호출
     sql = f"SELECT * FROM pubsub.olist_pubsub WHERE publish_time > TO_TIMESTAMP('{publish_last_value}', 'YYYY-MM-DD HH24:MI:SS.MS') ORDER BY publish_time DESC"
-    df = get_df(sql)
+    df = get_df(sql,driver)
     #last value 갱신
     new_last_value = df.first()["publish_time"]
     write_last_value(last_value_file_path,str(new_last_value))
