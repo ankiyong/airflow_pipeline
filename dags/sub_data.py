@@ -7,7 +7,7 @@ from airflow.providers.postgres.operators.postgres import PostgresOperator
 from airflow.operators.python import BranchPythonOperator
 from airflow.operators.dummy import DummyOperator
 from datetime import datetime, timedelta
-import json
+import csv
 
 PROJECT_ID = "data-streaming-olist"
 SUBSCRIPTION_NAME = "order_data-sub"
@@ -42,9 +42,12 @@ def message_cnt():
 
 def save_to_json(**context):
     data = context['task_instance'].xcom_pull(key="query_results")
-    json_file_path = "/opt/airflow/logs/xcom_data.json"
-    with open(json_file_path, "w") as json_file:
-        json.dump(data, json_file, indent=4)
+    json_file_path = "/opt/airflow/logs/xcom_data.csv"
+    # with open(json_file_path, "w") as json_file:
+        # json.dump(data, json_file, indent=4)
+    with open(json_file_path, "w", newline="") as csv_file:
+        writer = csv.writer(csv_file)
+        writer.writerows(data)
 
 publish_last_value = message_cnt()
 
