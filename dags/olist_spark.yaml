@@ -4,6 +4,8 @@ metadata:
   name: spark-pi
   namespace: default
 spec:
+  sparkConf:
+    spark.driver.extraJavaOptions: "-Divy.cache.dir=/tmp -Divy.home=/tmp"
   deps:
     repositories:
       - https://mvnrepository.com/artifact/org.postgresql/postgresql
