@@ -67,7 +67,7 @@ def publish_to_pubsub():
                 sql =
                     f"""
                         INSERT INTO pubsub.olist_pubsub (
-                            ack_id,delivery_attempt,load_timestamp,
+                            ack_id,delivery_attempt,timestamp,
                             order_id, customer_id, order_status, order_purchase_timestamp,
                             order_approved_at, order_delivered_carrier_date, order_delivered_customer_date,
                             order_estimated_delivery_date, payment_sequential, payment_type,
@@ -77,7 +77,7 @@ def publish_to_pubsub():
                         ) VALUES (
                             '{ack_id}',
                             '{delivery_attempt}',
-                            '{load_timestamp},
+                            '{load_timestamp}',
                             '{decoded_data["order_id"] }',
                             '{decoded_data["customer_id"] }',
                             '{decoded_data["order_status"] }',
