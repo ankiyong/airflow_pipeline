@@ -27,9 +27,11 @@ dag = DAG(
     schedule_interval=None,
     catchup=False,
 )
-def decide_next_task(**kwargs):
-    result = kwargs['ti'].xcom_pull(key="return_value")[0]
-    if result and len(result) > 0:
+def decide_next_task(**context):
+    task_instance = context['task_instance']
+    result = context['task_instance'].xcom_pull(key="return_value")
+    if result and len(result)[0] > 0:
+        task_instance.xcom_push(key="return_value")
         return "save_to_json"
     return "end_task"
 
@@ -38,8 +40,8 @@ def message_cnt():
     publish_last_value = f.read()
     return publish_last_value
 
-def save_to_json(**kwargs):
-    data = kwargs['ti'].xcom_pull(key="return_value")
+def save_to_json(**context):
+    data = context['task_instance'].xcom_pull(key="return_value")
     json_file_path = "/opt/airflow/data/xcom_data.json"
     with open(json_file_path, "w") as json_file:
         json.dump(data, json_file, indent=4)
