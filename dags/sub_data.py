@@ -38,6 +38,7 @@ def message_cnt():
     get_data = PostgresOperator(
         task_id = "postgres_check",
         postgres_conn_id = "olist_postgres_conn",
+        do_xcom_push = True,
         sql = f"""
             SELECT
                 count(order_id)
