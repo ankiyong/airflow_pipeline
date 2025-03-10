@@ -7,6 +7,7 @@ from airflow.providers.postgres.operators.postgres import PostgresOperator
 from airflow.operators.python import BranchPythonOperator
 from airflow.operators.dummy import DummyOperator
 from datetime import datetime, timedelta
+import json
 
 PROJECT_ID = "data-streaming-olist"
 SUBSCRIPTION_NAME = "order_data-sub"
@@ -37,6 +38,12 @@ def message_cnt():
     publish_last_value = f.read()
     return publish_last_value
 
+def save_to_json(**kwargs):
+    data = kwargs['ti'].xcom_pull(key="return_value")
+    json_file_path = "/opt/airflow/data/xcom_data.json"
+    with open(json_file_path, "w") as json_file:
+        json.dump(data, json_file, indent=4)
+
 publish_last_value = message_cnt()
 
 get_data = PostgresOperator(
@@ -52,6 +59,13 @@ get_data = PostgresOperator(
             publish_time > TO_TIMESTAMP('{publish_last_value}', 'YYYY-MM-DD HH24:MI:SS.MS')
         """
 )
+
+save_to_json = PythonOperator(
+    task_id = "save_to_json",
+    python_callable = save_to_json,
+    provide_context = True
+)
+
 branch_task = BranchPythonOperator(
     task_id="branch_task",
     python_callable=decide_next_task,
@@ -82,4 +96,4 @@ spark_process = SparkKubernetesOperator(
 )
 
 get_data >> branch_task
-branch_task >> [spark_process, end_task]
+branch_task >> [save_to_json, end_task]
