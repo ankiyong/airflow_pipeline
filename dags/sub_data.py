@@ -42,7 +42,7 @@ def message_cnt():
 
 def save_to_json(**context):
     data = context['task_instance'].xcom_pull(key="query_results")
-    json_file_path = "/opt/airflow/data/xcom_data.json"
+    json_file_path = "/opt/airflow/logs/xcom_data.json"
     with open(json_file_path, "w") as json_file:
         json.dump(data, json_file, indent=4)
 
