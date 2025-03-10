@@ -30,7 +30,7 @@ dag = DAG(
 def decide_next_task(**kwargs):
     result = kwargs['ti'].xcom_pull(key="return_value")[0]
     if result and len(result) > 0:
-        return "spark-process"
+        return "save_to_json"
     return "end_task"
 
 def message_cnt():
