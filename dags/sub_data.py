@@ -40,7 +40,7 @@ def message_cnt():
         postgres_conn_id = "olist_postgres_conn",
         sql = f"""
             SELECT
-                cnt(order_id)
+                count(order_id)
             FROM
                 pubsub.olist_pubsub
             WHERE
