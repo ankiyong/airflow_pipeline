@@ -56,3 +56,7 @@
 [Spark on K8S](https://aky123.tistory.com/66)
 
 [psycopg2 install error](https://aky123.tistory.com/60)
+
+[Spark Postgres Driver Error](https://aky123.tistory.com/74)
+
+[Spark Type Error](https://aky123.tistory.com/73)
