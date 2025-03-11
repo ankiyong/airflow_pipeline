@@ -94,8 +94,7 @@ spark_process = SparkKubernetesOperator(
 
 append_to_bigquery = GCSToBigQueryOperator(
     task_id = "append_to_bigquery",
-    bucket = "olist_data_buckets",
-
+    bucket = "olist_data_buckets"
 )
 
 publish_lastvalue >> get_data >> spark_process
