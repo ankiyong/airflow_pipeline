@@ -21,7 +21,7 @@ default_args = {
 dag = DAG(
     "spark_and_gcs",
     default_args=default_args,
-    schedule_interval="* * * * *",
+    schedule_interval="*/5 * * * *",
     catchup=False,
 )
 def decide_next_task(**context):
