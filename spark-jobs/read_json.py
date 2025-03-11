@@ -43,7 +43,7 @@ def main():
     sql = f"""
         SELECT *
         FROM pubsub.olist_pubsub
-        WHERE publish_time > TO_TIMESTAMP('{publish_last_value}', 'YYYY-MM-DD HH24:MI:SS.MS')
+        WHERE timestamp > TO_TIMESTAMP('{publish_last_value}', 'YYYY-MM-DD HH24:MI:SS.MS')
         ORDER BY publish_time DESC
     """
     df = spark.read.format("jdbc") \
