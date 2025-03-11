@@ -39,7 +39,7 @@ def publish_last_value(**context):
 
 publish_lastvalue = PythonOperator(
     task_id = "publish_lastvalue",
-    python_callable = "publish_last_value",
+    python_callable = publish_last_value,
     dag=dag
 )
 
