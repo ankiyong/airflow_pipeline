@@ -1,10 +1,12 @@
 from pyspark.sql import SparkSession,functions as F
-import json,os,datetime,shutil,time
+import json,os,shutil,time
 from pyspark.sql.functions import col,to_timestamp,unix_timestamp,floor
 from functools import reduce
+from pathlib import Path
 from dotenv import load_dotenv
+from datetime import datetime
 
-def get_last_value(file_path):
+def get_last_value(file_path: Path) -> str:
     if not os.path.exists(file_path):
         publish_last_value = "2000-01-01 00:00:00.000"
         f = open(file_path,'w')
@@ -13,25 +15,17 @@ def get_last_value(file_path):
         f = open(file_path,'r')
         publish_last_value = f.read()
     return publish_last_value
-def write_last_value(last_value,value):
+
+def write_last_value(last_value: Path,value: str):
     f = open(last_value,'w')
     f.write(value)
 
-def get_df(sql):
-    df = spark.read.format("jdbc") \
-                .option("url", f"jdbc:postgresql://192.168.28.3:5431/postgres") \
-                .option("driver", "org.postgresql.Driver") \
-                .option("query", sql) \
-                .option("user", "postgres") \
-                .option("password", "postgres") \
-                .load()
-    return df
 
-if __name__ == "__main__":
+def main():
     source_file = "/opt/spark/data/postgresql-42.7.5.jar"
     target_dir = "/opt/spark/jars/postgresql-42.7.5.jar"
-    os.system("cp /opt/spark/data/postgresql-42.7.5.jar /opt/spark/jars")
-    shutil.copy(source_file, target_dir)
+    shutil.copy(source_file, target_dir) #jar file 복사
+
     last_value_file_path = "/opt/spark/data/publish_last_value.txt"
     spark = (
         SparkSession.builder
@@ -44,9 +38,14 @@ if __name__ == "__main__":
         .config("spark.driver.extraClassPath", "/opt/spark/data/postgresql-42.7.5.jar") \
         .getOrCreate()
         )
-    publish_last_value = get_last_value(last_value_file_path)
-    sql = f"SELECT * FROM pubsub.olist_pubsub WHERE publish_time > TO_TIMESTAMP('{publish_last_value}', 'YYYY-MM-DD HH24:MI:SS.MS') ORDER BY publish_time DESC"
 
+    publish_last_value = get_last_value(last_value_file_path) #last value 가져오기
+    sql = f"""
+        SELECT *
+        FROM pubsub.olist_pubsub
+        WHERE publish_time > TO_TIMESTAMP('{publish_last_value}', 'YYYY-MM-DD HH24:MI:SS.MS')
+        ORDER BY publish_time DESC
+    """
     df = spark.read.format("jdbc") \
                 .option("url", f"jdbc:postgresql://192.168.28.3:5431/postgres") \
                 .option("driver", "org.postgresql.Driver") \
@@ -54,20 +53,30 @@ if __name__ == "__main__":
                 .option("user", "postgres") \
                 .option("password", "postgres") \
                 .load()
-    #last value 갱신
+    if df.isEmpty():
+        print("Threr is no new data")
+        return
+    #새로운 last value 설정
     new_last_value = df.first()["publish_time"]
-    dt = datetime.strptime(new_last_value, "%Y-%m-%d %H:%M:%S.%f")
-    publish_last_value = dt.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+    publish_last_value = new_last_value.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
     write_last_value(last_value_file_path,str(publish_last_value))
 
-    column_name = ["price","freight_value","payment_value"]
+    #데이터 정제
     df = df.na.drop()
+    column_name = ["price","freight_value","payment_value"]
     df = reduce(lambda df, col: df.withColumn(col, F.round(df[col], 2)), column_name, df)
     df = df.withColumn("order_delivered_customer_date", to_timestamp(col("order_delivered_customer_date"))) \
         .withColumn("order_purchase_timestamp", to_timestamp(col("order_purchase_timestamp"))) \
         .withColumn("time_diff_seconds", unix_timestamp(col("order_delivered_customer_date")) - unix_timestamp(col("order_purchase_timestamp"))) \
         .withColumn("delevery_time",floor(col("time_diff_seconds")/3600))
-    df = df.drop("id","order_estimated_delivery_date","order_approved_at","order_delivered_carrier_date","delivery_attempt","ordering_key","time_diff_seconds")
+    df = df.drop(
+        "id","order_estimated_delivery_date","order_approved_at",
+        "order_delivered_carrier_date","delivery_attempt","ordering_key","time_diff_seconds"
+    )
+
     gcs_bucket = "olist_data_buckets"
     parquet_path = f"gs://{gcs_bucket}/orders/orders.parquet"
     df.write.mode("append").format("parquet").save(parquet_path)
+
+if __name__ == "__main__":
+    main()
