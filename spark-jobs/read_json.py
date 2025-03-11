@@ -35,6 +35,8 @@ def main():
         .config("spark.hadoop.fs.gs.impl", "com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem")
         .config("spark.hadoop.google.cloud.auth.service.account.enable", "true")
         .config("spark.hadoop.google.cloud.auth.service.account.json.keyfile", "/opt/spark/data/key.json")
+        .config("spark.jars.packages", "com.google.cloud.spark:spark-bigquery-with-dependencies_2.12:0.33.0") \
+        .config("temporaryGcsBucket", "olist_archive") \
         .config("spark.driver.extraClassPath", "/opt/spark/data/postgresql-42.7.5.jar") \
         .getOrCreate()
         )
@@ -74,9 +76,14 @@ def main():
         "order_delivered_carrier_date","delivery_attempt","ordering_key","time_diff_seconds"
     )
 
-    gcs_bucket = "olist_data_buckets"
-    parquet_path = f"gs://{gcs_bucket}/orders/orders.parquet"
-    df.write.mode("append").format("parquet").save(parquet_path)
+    df.write.format("bigquery") \
+        .option("table", "olist_dataset.olist_orders") \
+        .option("writeMethod", "direct") \
+        .mode("append") \
+        .save()
+    # gcs_bucket = "olist_data_buckets"
+    # parquet_path = f"gs://{gcs_bucket}/orders/orders.parquet"
+    # df.write.mode("append").format("parquet").save(parquet_path)
 
 if __name__ == "__main__":
     main()
