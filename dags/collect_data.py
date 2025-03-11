@@ -3,10 +3,13 @@ from airflow.providers.google.cloud.operators.pubsub import PubSubPublishMessage
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from airflow.operators.python_operator import PythonOperator
 from airflow.providers.postgres.operators.postgres import PostgresOperator
-import requests,json,base64
-from datetime import datetime,timedelta
-import os,random
 from airflow.decorators import task, dag
+import requests,json,base64,logging
+from datetime import datetime
+import os
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 @dag(schedule_interval=None,start_date= datetime.now(),catchup=False)
 def publish_to_pubsub():
@@ -24,14 +27,20 @@ def publish_to_pubsub():
         url = f"http://192.168.28.3:8000/orders/id/{int(last_value)}/{int(last_value)+interval}"
         with open(last_value_path, "w", encoding="utf-8") as file:
             file.write(f"{int(last_value)+interval}")
-        response = requests.get(url)
-        if response.status_code == 200:
-            print("Connect Success")
-            return response.json()
+        try:
+            response = requests.get(url)
+            response.raise_for_status()
+            data = response.json()
+            logger.info(f"Data fetched successfully: {len(data)} records")
+        except requests.RequestException as e:
+            logger.error(f"Failed to fetch order data: {e}")
+            data = []
+            return data
+
     def publish_data(ti):
         data = ti.xcom_pull(task_ids="get_order_data_after_last_value")
         if not data:
-            print("데이터가 존재하지 않습니다.")
+            logger.info("데이터가 존재하지 않습니다.")
             return None
 
         for d in data:
@@ -51,7 +60,7 @@ def publish_to_pubsub():
         messages = ti.xcom_pull(task_ids="subscribe_message")
 
         if not messages:
-            print("No messages received.")
+            logger.info("메시지가 존재하지 않습니다.")
             return
         for msg in messages:
             encoded_data = json.loads(base64.b64decode(msg['message']['data']).decode('utf-8'))
