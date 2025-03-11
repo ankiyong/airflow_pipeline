@@ -72,7 +72,7 @@ end_task = DummyOperator(
 )
 
 spark_process = SparkKubernetesOperator(
-    task_id="spark-process",
+    task_id="spark_process",
     trigger_rule="all_success",
     depends_on_past=True,
     retries=3,
