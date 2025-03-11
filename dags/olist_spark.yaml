@@ -5,23 +5,16 @@ metadata:
   namespace: default
 spec:
   sparkConf:
-    # spark.driver.extraJavaOptions: "-Divy.cache.dir=/tmp -Divy.home=/tmp"
     spark.jars.ivy: "/tmp/ivy"
     spark.jars.repositories: "https://mvnrepository.com/artifact/org.postgresql/postgresql"
     spark.jars.packages: "org.postgresql:postgresql:42.7.5"
-  # deps:
-  #   repositories:
-  #     - https://mvnrepository.com/artifact/org.postgresql/postgresql
-  #   packages:
-  #     - org.postgresql:postgresql:42.7.5
-  timeToLiveSeconds: 60 # Completed 상태의 pod를 60초 후에 삭제
+  timeToLiveSeconds: 60
   type: Python
   mode: cluster
-  image: localhost:5000/spark:1.3 # 사용하는 이미지
+  image: localhost:5000/spark:1.3
   imagePullPolicy: IfNotPresent
-  mainApplicationFile: local:///opt/spark/jobs/read_json.py # 이미지 내의 jar 파일
+  mainApplicationFile: local:///opt/spark/jobs/read_json.py
   sparkVersion: 3.5.3
-
   volumes:
     - name: spark-jobs
       hostPath:
@@ -29,7 +22,6 @@ spec:
     - name: data
       hostPath:
         path: /home/aky/data
-
   driver:
     labels:
       version: 3.5.3
