@@ -54,7 +54,7 @@ get_data = PostgresOperator(
         FROM
             pubsub.olist_pubsub
         WHERE
-            publish_time > TO_TIMESTAMP(%(publish_last_value)s, 'YYYY-MM-DD HH24:MI:SS.MS')
+            timestamp > TO_TIMESTAMP(%(publish_last_value)s, 'YYYY-MM-DD HH24:MI:SS.MS')
         """
     )
 
