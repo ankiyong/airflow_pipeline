@@ -57,7 +57,7 @@ def main():
         print("Threr is no new data")
         return
     #새로운 last value 설정
-    new_last_value = df.first()["publish_time"]
+    new_last_value = df.first()["timestamp"]
     publish_last_value = new_last_value.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
     write_last_value(last_value_file_path,str(publish_last_value))
 
