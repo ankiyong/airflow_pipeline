@@ -3,6 +3,7 @@ from airflow.operators.python_operator import PythonOperator
 from airflow.providers.google.cloud.operators.pubsub import PubSubPullOperator
 from airflow.decorators import dag
 from airflow.providers.cncf.kubernetes.operators.spark_kubernetes import SparkKubernetesOperator
+from airflow.providers.google.cloud.transfers.gcs_to_bigquery import GCSToBigQueryOperator
 from airflow.providers.postgres.operators.postgres import PostgresOperator
 from airflow.operators.python import BranchPythonOperator
 from airflow.operators.dummy import DummyOperator
@@ -89,6 +90,12 @@ spark_process = SparkKubernetesOperator(
     kubernetes_conn_id="kubernetes-conn-default",
     do_xcom_push=False,
     dag=dag
+)
+
+append_to_bigquery = GCSToBigQueryOperator(
+    task_id = "append_to_bigquery",
+    bucket = "olist_data_buckets",
+
 )
 
 publish_lastvalue >> get_data >> spark_process
