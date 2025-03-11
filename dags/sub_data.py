@@ -7,7 +7,7 @@ from airflow.providers.postgres.operators.postgres import PostgresOperator
 from airflow.operators.python import BranchPythonOperator
 from airflow.operators.dummy import DummyOperator
 from datetime import datetime, timedelta
-import csv
+import os
 
 default_args = {
     "owner": "airflow",
@@ -32,10 +32,18 @@ def decide_next_task(**context):
     return "end_task"
 
 def publish_last_value(**context):
-    f = open("/opt/airflow/logs/publish_last_value.txt",'r')
-    publish_last_value = f.read()
+    file_path = "/opt/airflow/logs/publish_last_value.txt"
+    if not os.path.exists(file_path):
+        publish_last_value = "2000-01-01 00:00:00.000"
+        f = open(file_path,'w')
+        f.write("2000-01-01 00:00:00.000") #최초 값 세팅
+    else:
+        f = open(file_path,'r')
+        publish_last_value = f.read()
     task_instance = context['task_instance']
     task_instance.xcom_push(key="return_value",value=publish_last_value)
+
+    return publish_last_value
 
 publish_lastvalue = PythonOperator(
     task_id = "publish_lastvalue",
