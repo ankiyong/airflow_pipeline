@@ -58,7 +58,6 @@ def publish_to_pubsub():
         return data
     def save_to_postgres(ti):
         messages = ti.xcom_pull(task_ids="subscribe_message")
-
         if not messages:
             logger.info("메시지가 존재하지 않습니다.")
             return

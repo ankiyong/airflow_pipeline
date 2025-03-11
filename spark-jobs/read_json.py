@@ -1,4 +1,5 @@
 from pyspark.sql import SparkSession,functions as F
+from pyspark.sql.types import DecimalType
 import json,os,shutil,time
 from pyspark.sql.functions import col,to_timestamp,unix_timestamp,floor
 from functools import reduce
@@ -75,15 +76,20 @@ def main():
         "id","order_estimated_delivery_date","order_approved_at",
         "order_delivered_carrier_date","delivery_attempt","ordering_key","time_diff_seconds"
     )
+    decimal_columns = [field.name for field in df.schema.fields if isinstance(field.dataType, DecimalType)]
+    for col_name in decimal_columns:
+        df = df.withColumn(col_name, col(col_name).cast("double"))
+    # df.printSchema()
 
     df.write.format("bigquery") \
+        .option("parentProject","olist-data-engineering") \
         .option("table", "olist_dataset.olist_orders") \
         .option("writeMethod", "direct") \
         .mode("append") \
         .save()
-    # gcs_bucket = "olist_data_buckets"
-    # parquet_path = f"gs://{gcs_bucket}/orders/orders.parquet"
-    # df.write.mode("append").format("parquet").save(parquet_path)
+    gcs_bucket = "olist_data_buckets"
+    parquet_path = f"gs://{gcs_bucket}/orders/orders.parquet"
+    df.write.mode("append").format("parquet").save(parquet_path)
 
 if __name__ == "__main__":
     main()
