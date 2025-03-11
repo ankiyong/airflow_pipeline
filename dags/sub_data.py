@@ -28,7 +28,7 @@ def decide_next_task(**context):
     task_instance = context['task_instance']
     result = context['task_instance'].xcom_pull(key="return_value")
     if result and len(result[0]) > 0:
-        return "save_to_json"
+        return "spark_process"
     return "end_task"
 
 def publish_last_value(**context):
