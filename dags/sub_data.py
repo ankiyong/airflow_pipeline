@@ -12,7 +12,7 @@ import csv
 default_args = {
     "owner": "airflow",
     "depends_on_past": False,
-    "start_date": datetime(2024, 2, 25),
+    "start_date": datetime.now(),
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
 }
@@ -21,7 +21,7 @@ default_args = {
 dag = DAG(
     "spark_and_gcs",
     default_args=default_args,
-    schedule_interval=None,
+    schedule_interval="1 * * * *",
     catchup=False,
 )
 def decide_next_task(**context):
