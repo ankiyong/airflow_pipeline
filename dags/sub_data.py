@@ -46,14 +46,15 @@ publish_lastvalue = PythonOperator(
 get_data = PostgresOperator(
     task_id = "postgres_check",
     postgres_conn_id = "olist_postgres_conn",
+    trigger_rule="all_success",
     parameters={"publish_last_value": "{{ ti.xcom_pull(task_ids='publish_lastvalue') }}"},
-    sql = f"""
+    sql = """
         SELECT
             *
         FROM
             pubsub.olist_pubsub
         WHERE
-            publish_time > TO_TIMESTAMP('{publish_last_value}', 'YYYY-MM-DD HH24:MI:SS.MS')
+            publish_time > TO_TIMESTAMP(%(publish_last_value)s, 'YYYY-MM-DD HH24:MI:SS.MS')
         """
     )
 
