@@ -82,5 +82,5 @@ spark_process = SparkKubernetesOperator(
     dag=dag
 )
 
-get_data >> branch_task
+publish_lastvalue >> get_data >> branch_task
 branch_task >> [spark_process, end_task]
