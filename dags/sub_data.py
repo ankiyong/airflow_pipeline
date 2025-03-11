@@ -28,27 +28,35 @@ def decide_next_task(**context):
     task_instance = context['task_instance']
     result = context['task_instance'].xcom_pull(key="return_value")
     if result and len(result[0]) > 0:
-        task_instance.xcom_push(key="query_results",value=result)
         return "save_to_json"
     return "end_task"
 
-def get_data():
+def publish_last_value(**context):
     f = open("/opt/airflow/logs/publish_last_value.txt",'r')
     publish_last_value = f.read()
-    postgres_task = PostgresOperator(
-        task_id = "postgres_check",
-        postgres_conn_id = "olist_postgres_conn",
-        parameters={"publish_last_value": publish_last_value},
-        sql = f"""
-            SELECT
-                *
-            FROM
-                pubsub.olist_pubsub
-            WHERE
-                publish_time > TO_TIMESTAMP('{publish_last_value}', 'YYYY-MM-DD HH24:MI:SS.MS')
-            """
-        )
-    postgres_task.execute(context={})
+    task_instance = context['task_instance']
+    task_instance.xcom_push(key="return_value",value=publish_last_value)
+
+publish_lastvalue = PythonOperator(
+    task_id = "publish_lastvalue",
+    python_callable = "publish_last_value",
+    dag=dag
+)
+
+get_data = PostgresOperator(
+    task_id = "postgres_check",
+    postgres_conn_id = "olist_postgres_conn",
+    parameters={"publish_last_value": "{{ ti.xcom_pull(task_ids='publish_lastvalue') }}"},
+    sql = f"""
+        SELECT
+            *
+        FROM
+            pubsub.olist_pubsub
+        WHERE
+            publish_time > TO_TIMESTAMP('{publish_last_value}', 'YYYY-MM-DD HH24:MI:SS.MS')
+        """
+    )
+
 
 branch_task = BranchPythonOperator(
     task_id="branch_task",
