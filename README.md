@@ -19,7 +19,7 @@
 ## Data Architecture
 ![Image](https://github.com/user-attachments/assets/befae19b-bc04-411d-9da8-56f7f2646276)
 
-### 1. 인프라 구성
+## 1. 인프라 구성
 
 ✅ 로컬 환경 (k3s 기반)
 
@@ -37,7 +37,7 @@
 
 - Looker Studio: 시각화
 
-### 2. 사용 기술
+## 2. 사용 기술
 
 🚀 FastAPI
 
@@ -75,7 +75,8 @@
 
 - 비용 측면: 무료 크레딧 제공으로 비용 절감 가능
 
-## 3. 데이터 수집
+## 3. 파이프라인
+### 1. 데이터 수집
 
 📌 데이터 소스
 
@@ -83,7 +84,7 @@
 
 - 수집 대상 테이블 조인 후 구체화 View 생성하여 사용 (2025.03.11 추가)
 
-- Github Action 기능을 활용하여 정적 데이터 변경시 Upload 진행행
+- Github Action 기능을 활용하여 정적 데이터 변경시 Upload 진행
 
 📥 Python을 활용한 데이터 수집
 
@@ -102,9 +103,9 @@
 - 운영 오버헤드를 줄이기 위해 GCP Pub/Sub 선택
 
 - PubSub의 데이터 Postgresql로 전송
-  - Backfill을 위한 timestamp가 필요했기 때문에 publish,db적재 timestamp 추가 후 저장장
+  - Backfill을 위한 timestamp가 필요했기 때문에 publish,db적재 timestamp 추가 후 저장
 
-4. 데이터 처리
+### 2. 데이터 처리
 
 - Airflow + Kubernetes에서 Spark Operator를 사용하여 처리
 
@@ -116,7 +117,7 @@
 
 - 처리된 데이터를 BigQuery에 적재 (2025.03.11 추가)
 
-### 5. 데이터 적재
+### 3. 데이터 적재
 
 📂 Cloud Storage
 
@@ -132,7 +133,7 @@
 
 - SQL을 활용하여 데이터 분석
 
-### 6. 데이터 시각화
+### 4. 데이터 시각화
 
 📈 Looker Studio
 
@@ -150,3 +151,5 @@
 [Spark Postgres Driver Error](https://aky123.tistory.com/74)
 
 [Spark Type Error](https://aky123.tistory.com/73)
+
+[Git Action](https://aky123.tistory.com/77)
