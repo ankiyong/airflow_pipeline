@@ -13,7 +13,7 @@ jobs:
       id-token: 'write'
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
     - name: Fetch all git history
       run: |
         git fetch --prune --unshallow
@@ -24,30 +24,36 @@ jobs:
           exit 1
           echo "Changes detected in static_data, proceeding with rsync."
         fi
-    - id: 'auth'
+    - uses: actions/setup-node@v4
       if: success()
-      uses: 'google-github-actions/auth@v2'
       with:
-        workload_identity_provider: '${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}'
-        service_account: '${{ secrets.SERVICE_ACCOUNT }}'
-        project_id: '${{ secrets.PROJECT_ID }}'
-    - id: 'upload-file'
-      uses: 'google-github-actions/upload-cloud-storage@v2'
-      with:
-        path: '${{ secrets.CSV_PATH }}'
-        destination: '${{ secrets.BUCKET_NAME }}'
-    - name: Load CSV to BigQuery
-      run: |
-        for file in static_data/*.csv; do
-          filename=$(basename "$file" .csv)
-          echo "Uploading $file to BigQuery table $filename..."
+        node-version: 18
+    - run: npm install @google-cloud/bigquery
+    - run: npm install @@google-cloud/storage
+    # - id: 'auth'
+    #   if: success()
+    #   uses: 'google-github-actions/auth@v2'
+    #   with:
+    #     workload_identity_provider: '${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}'
+    #     service_account: '${{ secrets.SERVICE_ACCOUNT }}'
+    #     project_id: '${{ secrets.PROJECT_ID }}'
+    # - id: 'upload-file'
+    #   uses: 'google-github-actions/upload-cloud-storage@v2'
+    #   with:
+    #     path: '${{ secrets.CSV_PATH }}'
+    #     destination: '${{ secrets.BUCKET_NAME }}'
+    # - name: Load CSV to BigQuery
+    #   run: |
+    #     for file in static_data/*.csv; do
+    #       filename=$(basename "$file" .csv)
+    #       echo "Uploading $file to BigQuery table $filename..."
 
-          bq load \
-            --source_format=CSV \
-            --autodetect \
-            --replace \
-            ${{ secrets.BIGQUERY_DATASET }}.$filename \
-            gs://${{ secrets.BUCKET_NAME }}/static_data/$filename.csv
+    #       bq load \
+    #         --source_format=CSV \
+    #         --autodetect \
+    #         --replace \
+    #         ${{ secrets.BIGQUERY_DATASET }}.$filename \
+    #         gs://${{ secrets.BUCKET_NAME }}/static_data/$filename.csv
 
-          echo "$file uploaded successfully!"
-        done
+    #       echo "$file uploaded successfully!"
+    #     done
