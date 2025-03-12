@@ -5,6 +5,9 @@ on:
     - 'static_data/**'
     branches:
     - main
+env:
+  workload_identity_provider: projects/95468451293/locations/global/workloadIdentityPools/aky-dev/providers/olist-repo
+  service_account: aky-dev@olist-data-engineering.iam.gserviceaccount.com
 jobs:
   deploy-to-cloud-storage:
     runs-on: ubuntu-latest
@@ -29,8 +32,8 @@ jobs:
       if: success()
       uses: 'google-github-actions/auth@v2'
       with:
-        workload_identity_provider: '${{ vars.WORKLOAD_IDENTITY_PROVIDER }}'
-        service_account: '${{ vars.SERVICE_ACCOUNT }}'
+        workload_identity_provider: '${{ env.workload_identity_provider }}'
+        service_account: '${{ env.service_account }}'
         project_id: '${{ vars.PROJECT_ID }}'
     - id: 'upload-file'
       uses: 'google-github-actions/upload-cloud-storage@v2'
