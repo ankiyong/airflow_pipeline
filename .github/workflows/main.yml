@@ -36,3 +36,18 @@ jobs:
       with:
         path: '${{ secrets.CSV_PATH }}'
         destination: '${{ secrets.BUCKET_NAME }}'
+    - name: Load CSV to BigQuery
+      run: |
+        for file in static_data/*.csv; do
+          filename=$(basename "$file" .csv)
+          echo "Uploading $file to BigQuery table $filename..."
+
+          bq load \
+            --source_format=CSV \
+            --autodetect \
+            --replace \
+            ${{ secrets.BIGQUERY_DATASET }}.$filename \
+            gs://${{ secrets.BUCKET_NAME }}/static_data/$filename.csv
+
+          echo "$file uploaded successfully!"
+        done
