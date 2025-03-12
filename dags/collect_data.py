@@ -122,7 +122,7 @@ def publish_to_pubsub():
         task_id='subscribe_message',
         subscription="order-data-subscribe",
         project_id='olist-data-engineering',
-        max_messages=1000,
+        max_messages=10000,
         gcp_conn_id="google_cloud_default",
     )
 
