@@ -31,7 +31,7 @@ jobs:
             --source_format=CSV \
             --autodetect \
             --replace \
-            ${{ secrets.BIGQUERY_DATASET }}.$file \
+            olist_dataset.$file \
             gs://${{ secrets.BUCKET_NAME }}/static_data/$filename.csv
           echo "$file uploaded successfully!"
         done
