@@ -13,8 +13,13 @@ jobs:
       id-token: 'write'
     steps:
     - uses: 'actions/checkout@v2'
+    # - id: 'auth'
+    #   name: 'Authenticate to Google Cloud'
+    #   uses: 'google-github-actions/auth@v2'
+    #   with:
+        # credentials_json: '${{ secrets.GOOGLE_CREDENTIALS }}'
     - id: 'auth'
-      name: 'Authenticate to Google Cloud'
       uses: 'google-github-actions/auth@v2'
       with:
-        credentials_json: '${{ secrets.GOOGLE_CREDENTIALS }}'
+        workload_identity_provider: 'projects/95468451293/locations/global/workloadIdentityPools/olist-git/providers/olist-repo'
+        service_account: 'aky-olist@olist-data-engineering.iam.gserviceaccount.com'
