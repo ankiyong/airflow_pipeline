@@ -23,7 +23,7 @@ def publish_to_pubsub():
         else:
             with open(last_value_path,encoding="utf-8") as file:
                 last_value = file.read()
-        interval = 1000
+        interval = 10000
         url = f"http://192.168.28.3:8000/orders/id/{int(last_value)}/{int(last_value)+interval}"
         with open(last_value_path, "w", encoding="utf-8") as file:
             file.write(f"{int(last_value)+interval}")
