@@ -17,7 +17,7 @@
 ## Data Visualization
 
 ## Data Architecture
-![Image](https://github.com/user-attachments/assets/dee00690-3749-4b73-bed2-c28212b7bb0a)
+![Image](https://github.com/user-attachments/assets/befae19b-bc04-411d-9da8-56f7f2646276)
 
 ### 1. 인프라 구성
 
@@ -83,6 +83,8 @@
 
 - 수집 대상 테이블 조인 후 구체화 View 생성하여 사용 (2025.03.11 추가)
 
+- Github Action 기능을 활용하여 정적 데이터 변경시 Upload 진행행
+
 📥 Python을 활용한 데이터 수집
 
 - Airflow DAG을 활용하여 API 서버에서 데이터 수집
@@ -98,6 +100,9 @@
 - Kafka와 유사한 메시징 서비스
 
 - 운영 오버헤드를 줄이기 위해 GCP Pub/Sub 선택
+
+- PubSub의 데이터 Postgresql로 전송
+  - Backfill을 위한 timestamp가 필요했기 때문에 publish,db적재 timestamp 추가 후 저장장
 
 4. 데이터 처리
 
@@ -136,7 +141,7 @@
 - 대시보드를 활용하여 인사이트 도출
 
 🔖 결론
-- 본 프로젝트는 Kubernetes 기반에서 Airflow, Spark, 그리고 GCP 서비스를 연계하여 대규모 데이터 파이프라인 구축합니다. 데이터 수집부터 처리, 저장, 시각화까지 전 과정을 자동화하여 운영 효율성을 극대화하고, 확장성을 고려한 구조를 설계하였습니다. 추후 GKE로의 이전 및 성능 최적화를 진행할 예정입니다.
+- 본 프로젝트에서는 Kubernetes 기반에서 Airflow, Spark, 그리고 GCP 서비스를 연계하여 대규모 데이터 파이프라인 구축했습니다. 데이터 수집부터 처리, 저장, 시각화까지 전 과정을 자동화하여 운영 효율성을 극대화하고, 확장성을 고려한 구조를 설계하였습니다. 추후 GKE로의 이전 및 성능 최적화를 진행할 예정입니다.
 ## Trouble Shooting
 [Spark on K8S](https://aky123.tistory.com/66)
 
