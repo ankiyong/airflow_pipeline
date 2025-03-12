@@ -13,11 +13,6 @@ jobs:
       id-token: 'write'
     steps:
     - uses: 'actions/checkout@v2'
-    # - id: 'auth'
-    #   name: 'Authenticate to Google Cloud'
-    #   uses: 'google-github-actions/auth@v2'
-    #   with:
-        # credentials_json: '${{ secrets.GOOGLE_CREDENTIALS }}'
     - uses: 'google-github-actions/auth@v2'
       with:
         credentials_json: '${{ secrets.GOOGLE_CREDENTIALS }}'
@@ -26,3 +21,17 @@ jobs:
       with:
         path: 'static_data'
         destination: 'olist_data_buckets'
+    - name: Load CSV to BigQuery
+      run: |
+        for file in static_data/*.csv; do
+          filename=$(basename "$file" .csv)
+          echo "Uploading $file to BigQuery table $filename..."
+
+          bq load \
+            --source_format=CSV \
+            --autodetect \
+            --replace \
+            ${{ secrets.BIGQUERY_DATASET }}.$file \
+            gs://${{ secrets.BUCKET_NAME }}/static_data/$filename.csv
+          echo "$file uploaded successfully!"
+        done
