@@ -26,12 +26,12 @@ jobs:
         for file in static_data/*.csv; do
           filename=$(basename "$file" .csv)
           echo "Uploading $file to BigQuery table $filename..."
-
+          echo 
           bq load \
             --source_format=CSV \
             --autodetect \
             --replace \
-            olist_dataset.$file \
+            olist_dataset.$filename \
             gs://${{ secrets.BUCKET_NAME }}/static_data/$filename.csv
           echo "$file uploaded successfully!"
         done
