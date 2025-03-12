@@ -84,7 +84,7 @@
 
 - 수집 대상 테이블 조인 후 구체화 View 생성하여 사용 (2025.03.11 추가)
 
-- Github Action 기능을 활용하여 정적 데이터 변경시 Upload 진행행
+- Github Action 기능을 활용하여 정적 데이터 변경시 Upload 진행
 
 📥 Python을 활용한 데이터 수집
 
@@ -103,7 +103,7 @@
 - 운영 오버헤드를 줄이기 위해 GCP Pub/Sub 선택
 
 - PubSub의 데이터 Postgresql로 전송
-  - Backfill을 위한 timestamp가 필요했기 때문에 publish,db적재 timestamp 추가 후 저장장
+  - Backfill을 위한 timestamp가 필요했기 때문에 publish,db적재 timestamp 추가 후 저장
 
 ### 2. 데이터 처리
 
