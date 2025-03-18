@@ -49,6 +49,7 @@ def publish_to_pubsub():
                 task_id='publish_message',
                 project_id='olist-data-engineering',
                 topic='olist_dataset',
+                enable_message_ordering= True
                 messages=[{'data': json_data}]
             )
             publish_task.execute(context={})
