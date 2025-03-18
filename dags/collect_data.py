@@ -32,6 +32,7 @@ def publish_to_pubsub():
             response.raise_for_status()
             data = response.json()
             logger.info(f"Data fetched successfully: {len(data)} records")
+            return data
         except requests.RequestException as e:
             logger.error(f"Failed to fetch order data: {e}")
             data = []
