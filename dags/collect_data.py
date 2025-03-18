@@ -92,6 +92,7 @@ def publish_to_pubsub():
                         %s, %s, %s,
                         %s, %s
                     )
+                    ON CONFLICT DO NOTHING;
                 """,
                 parameters=(
                     ack_id, delivery_attempt, load_timestamp,
