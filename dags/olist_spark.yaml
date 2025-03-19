@@ -4,6 +4,11 @@ metadata:
   name: spark-pi
   namespace: default
 spec:
+  dynamicAllocation:
+    enabled: true
+    initialExecutors: 2
+    minExecutors: 2
+    maxExecutors: 10
   sparkConf:
     spark.jars.ivy: "/tmp/ivy"
     spark.jars.repositories: "https://mvnrepository.com/artifact/org.postgresql/postgresql"
