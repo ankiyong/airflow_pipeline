@@ -1,5 +1,12 @@
 ---
 executor: "KubernetesExecutor"
+webserver:
+  service:
+    type: NodePort
+    ports:
+      - name: airflow-ui
+        port: 8080
+        targetPort: 8080
 logs:
   persistence:
     enabled: true
@@ -18,3 +25,17 @@ dags:
     sshKeySecret: airflow-git-ssh-secret
     containerName: git-sync
     uid: 65533
+ingress:
+  enabled: true
+  web:
+    enabled: true
+    annotations: 
+      ingress.kubernetes.io/rewrite-target: /
+    path: "/airflow"
+    pathType: "prefix"
+    host: "aky.dev"
+    hosts: []
+    ingressClassName: "nginx"
+    tls:
+      enabled: false
+      secretName: ""

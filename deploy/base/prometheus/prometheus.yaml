@@ -1,0 +1,22 @@
+grafana:
+  enabled: false
+  defaultDashboardsTimezone: Asia/Seoul
+  persistence:
+    type: pvc
+    enabled: true
+    accessModes:
+    - ReadWriteOnce
+    size: 10Gi
+prometheus:
+  prometheusSpec:
+    serviceMonitorSelectorNilUsesHelmValues: false
+    retention: 5d
+    retentionSize: 10GiB
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: local-path
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 10Gi

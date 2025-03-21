@@ -1,0 +1,7 @@
+helmCharts:
+  - name: prometheus
+    repo: https://prometheus-community.github.io/helm-charts
+    version: 27.5.1
+    releaseName: prometheus
+    namespace: monitoring
+    valuesFile: prometheus.yaml
