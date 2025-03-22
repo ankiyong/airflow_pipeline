@@ -1,18 +1,12 @@
-FROM python:3.10.12
+FROM python:3.10.12-alpine
 
+RUN apk update && apk add --no-cache cronie vim
 
-
-RUN apt update \
-    && apt install -y \
-    cron \
-    vim \
-    && apt clean \
-    && rm -rf /var/lib/apt/lists/*
-RUN mkdir app
+RUN mkdir /app
 WORKDIR /app
 COPY requirements.txt .
 COPY .env .
-RUN pip3 install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 COPY *.py .
 
