@@ -1,0 +1,15 @@
+global:
+  postgresql:
+    auth:
+      postgresPassword: "595855"
+      username: "aky"
+      password: "595855"
+auth:
+  enablePostgresUser: true
+primary:
+  service:
+    type: NodePort
+    ports:
+      postgresql: 5432
+    nodePorts:
+      postgresql: 30001
