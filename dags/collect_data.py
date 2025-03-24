@@ -4,6 +4,7 @@ from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from airflow.operators.python_operator import PythonOperator
 from airflow.providers.postgres.operators.postgres import PostgresOperator
 from airflow.decorators import task, dag
+from airflow.providers.google.cloud.hooks.pubsub import PubSubHook
 import requests,json,base64,logging
 from datetime import datetime
 import os
@@ -46,6 +47,7 @@ def publish_to_pubsub():
         logger.info(f"Last Value: {data}")
         with open(last_value_path,"w",encoding="utf-8") as file:
             file.write(data)
+    from airflow.providers.google.cloud.hooks.pubsub import PubSubHook
 
     def publish_data(ti):
         data = ti.xcom_pull(task_ids="get_order_data_after_last_value")
@@ -53,17 +55,61 @@ def publish_to_pubsub():
             logger.info("데이터가 존재하지 않습니다.")
             return None
 
+        hook = PubSubHook(gcp_conn_id="google-cloud")
+        batch_size = 1000
+        topic = 'olist_dataset'
+
+        data_list = []
         for d in data:
-            json_data = json.dumps(d).encode("utf-8")
-            publish_task = PubSubPublishMessageOperator(
-                task_id='publish_message',
+            data_list.append(json.dumps(d).encode("utf-8"))
+            if len(data_list) == batch_size:
+                hook.publish(
+                    project_id='olist-data-engineering',
+                    topic=topic,
+                    messages=data_list
+                )
+                data_list = []
+
+        # 마지막 batch 처리
+        if data_list:
+            hook.publish(
                 project_id='olist-data-engineering',
-                topic='olist_dataset',
-                enable_message_ordering= True,
-                gcp_conn_id="google-cloud",
-                messages=[{'data': json_data}]
+                topic=topic,
+                messages=data_list
             )
-            publish_task.execute(context={})
+
+    # def publish_data(ti):
+    #     data = ti.xcom_pull(task_ids="get_order_data_after_last_value")
+    #     if not data:
+    #         logger.info("데이터가 존재하지 않습니다.")
+    #         return None
+    #     data_list = []
+    #     task_count = 0
+    #     for d in data:
+    #         # json_data = json.dumps(d).encode("utf-8")
+    #         data_list.append(json.dumps(d).encode("utf-8"))
+    #         if len(data_list) == 1000:
+    #             task_count += 1
+    #             publish_task = PubSubPublishMessageOperator(
+    #                 task_id='publish_message',
+    #                 project_id='olist-data-engineering',
+    #                 topic='olist_dataset',
+    #                 enable_message_ordering= True,
+    #                 gcp_conn_id="google-cloud",
+    #                 messages=data_list
+    #             )
+    #             data_list = []
+    #     if data_list:
+    #         task_count += 1
+    #         publish_task = PubSubPublishMessageOperator(
+    #             task_id=f'publish_message_batch_{task_count}',
+    #             project_id='olist-data-engineering',
+    #             topic='olist_dataset',
+    #             enable_message_ordering=True,
+    #             gcp_conn_id="google-cloud",
+    #             messages=data_list
+    #         )
+    #         publish_task.execute(context={})
     def convert_empty_string_to_null(data):
         if isinstance(data, str) and data == '':
             return None
