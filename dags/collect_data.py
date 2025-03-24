@@ -51,6 +51,7 @@ def publish_to_pubsub():
                 project_id='olist-data-engineering',
                 topic='olist_dataset',
                 enable_message_ordering= True,
+                gcp_conn_id="google-cloud",
                 messages=[{'data': json_data}]
             )
             publish_task.execute(context={})
@@ -132,7 +133,7 @@ def publish_to_pubsub():
         subscription="order-data-subscribe",
         project_id='olist-data-engineering',
         max_messages=10000,
-        gcp_conn_id="google_cloud_default",
+        gcp_conn_id="google-cloud",
     )
 
     # postgres_task = PythonOperator(
