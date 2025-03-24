@@ -19,7 +19,7 @@ class OrderSchema(BaseModel):
     payment_installments: int
     payment_value: float
     order_item_id: int
-    product_id: str
+    product_id: Optional[List[str]] = None
     seller_ids: Optional[List[str]] = None
     shipping_limit_date: Optional[datetime] = None
     price: float

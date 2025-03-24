@@ -22,8 +22,9 @@ def publish_to_pubsub():
                 last_value = 0
         else:
             with open(last_value_path,encoding="utf-8") as file:
-                last_value = file.read()
-        url = f"http://192.168.56.40:8000/orders/id/{int(last_value)}"
+                last_value_str = file.read().strip()
+                last_value = datetime.strptime(last_value_str, '%Y-%m-%d %H:%M:%S')
+        url = f"http://192.168.56.40:8000/orders/id/{int(last_value.timestamp())}"
         with open(last_value_path, "w", encoding="utf-8") as file:
             file.write(f"{int(last_value)}")
         try:
@@ -37,6 +38,14 @@ def publish_to_pubsub():
             logger.error(f"Failed to fetch order data: {e}")
             data = []
             return data
+    def write_last_value():
+        last_value_path = "/opt/airflow/logs/last_value.txt"
+        url = f"http://192.168.56.40:8000/orders/latest"
+        response = requests.get(url)
+        data = response.json()["log_time"]
+        logger.info(f"Last Value: {data}")
+        with open(last_value_path,"w",encoding="utf-8") as file:
+            file.write(data)
 
     def publish_data(ti):
         data = ti.xcom_pull(task_ids="get_order_data_after_last_value")
@@ -136,14 +145,19 @@ def publish_to_pubsub():
         python_callable = save_to_postgres,
         provide_context = True
     )
-    # trigger_next_run = TriggerDagRunOperator(
-    #     task_id="trigger_next_run",
-    #     trigger_dag_id="publish_to_pubsub",
-    #     wait_for_completion=False,
-    # )
+
+    last_value = PythonOperator(
+        task_id = "write_last_value",
+        python_callable = write_last_value,
+        provide_contest = True
+    )
+    trigger_next_run = TriggerDagRunOperator(
+        task_id="trigger_next_run",
+        trigger_dag_id="publish_to_pubsub",
+        wait_for_completion=False,
+    )
 
 
     data = get_order_data_after_last_value()
-    # data >> publish_task >> subscribe_task >> postgres_task >> trigger_next_run
-    data >> publish_task >> subscribe_task >> postgres_task
+    data >> publish_task >> subscribe_task >> postgres_task >> last_value >> trigger_next_run
 publish_to_pubsub_dag = publish_to_pubsub()

@@ -5,6 +5,6 @@ metadata:
 spec:
   containers:
     - name: olist-api
-      image: pop2413/olist_api:1.2
+      image: pop2413/olist_api:1.6
   imagePullSecrets:
     - name: docker-hub

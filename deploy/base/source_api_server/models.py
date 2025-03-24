@@ -19,7 +19,7 @@ class Order(Base):
     payment_installments = Column(Integer)
     payment_value = Column(Float)
     order_item_id = Column(Integer)
-    product_id = Column(String)
+    product_id = Column(ARRAY(String))
     seller_ids = Column(ARRAY(String))
     shipping_limit_date = Column(String)
     price = Column(Numeric(precision=3, scale=2), default=0)

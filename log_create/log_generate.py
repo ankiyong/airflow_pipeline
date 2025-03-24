@@ -37,7 +37,7 @@ def create_table(conn):
                 payment_installments INTEGER,
                 payment_value NUMERIC(10,2),
                 order_item_id INTEGER,
-                product_id TEXT,
+                product_id TEXT[],
                 seller_ids TEXT[],
                 shipping_limit_date TIMESTAMP,
                 price NUMERIC(10,2),
@@ -111,10 +111,10 @@ def log_generate():
             if len(logs) >= batch_size:
                 insert_log(conn, logs)
                 logs = []
-                time.sleep(2)
+                time.sleep(3)
     if logs:
         insert_log(conn, logs)
-        time.sleep(2)
+        time.sleep(3)
     conn.close()
 
 if __name__ == '__main__':
