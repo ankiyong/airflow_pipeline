@@ -18,8 +18,8 @@ spec:
   mode: cluster
   image: pop2413/spark:1.4
   imagePullPolicy: IfNotPresent
-  imagePullSecrets:
-    - name: docker-hub
+  # imagePullSecrets:
+  #   - name: docker-hub
   mainApplicationFile: local:///opt/spark/jobs/read_json.py
   sparkVersion: 3.5.3
   volumes:
