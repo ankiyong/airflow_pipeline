@@ -18,8 +18,8 @@ def publish_to_pubsub():
         last_value_path = "/opt/airflow/logs/last_value.txt"
         if not os.path.exists(last_value_path):
             with open(last_value_path, "w", encoding="utf-8") as file:
-                file.write("0")
-                last_value = 0
+                file.write("2000-01-01 00:00:00")
+                last_value = "2000-01-01 00:00:00"
         else:
             with open(last_value_path,encoding="utf-8") as file:
                 last_value_str = file.read().strip()
