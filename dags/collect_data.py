@@ -19,14 +19,14 @@ def publish_to_pubsub():
         if not os.path.exists(last_value_path):
             with open(last_value_path, "w", encoding="utf-8") as file:
                 file.write("2000-01-01 00:00:00")
-                last_value = "2000-01-01 00:00:00"
+                last_value = datetime.strptime("2000-01-01 00:00:00", '%Y-%m-%d %H:%M:%S')
         else:
             with open(last_value_path,encoding="utf-8") as file:
                 last_value_str = file.read().strip()
                 last_value = datetime.strptime(last_value_str, '%Y-%m-%d %H:%M:%S')
         url = f"http://192.168.56.40:8000/orders/id/{int(last_value.timestamp())}"
         with open(last_value_path, "w", encoding="utf-8") as file:
-            file.write(f"{int(last_value)}")
+            file.write(last_value.strftime('%Y-%m-%d %H:%M:%S'))
         try:
             response = requests.get(url)
             response.raise_for_status()
