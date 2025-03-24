@@ -149,7 +149,7 @@ def publish_to_pubsub():
     last_value = PythonOperator(
         task_id = "write_last_value",
         python_callable = write_last_value,
-        provide_contest = True
+        provide_context = True
     )
     trigger_next_run = TriggerDagRunOperator(
         task_id="trigger_next_run",
