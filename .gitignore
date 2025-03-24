@@ -3,3 +3,4 @@
 values.yaml
 .env
 charts
+secrets
