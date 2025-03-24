@@ -47,7 +47,6 @@ def publish_to_pubsub():
         logger.info(f"Last Value: {data}")
         with open(last_value_path,"w",encoding="utf-8") as file:
             file.write(data)
-    from airflow.providers.google.cloud.hooks.pubsub import PubSubHook
 
     def publish_data(ti):
         data = ti.xcom_pull(task_ids="get_order_data_after_last_value")
@@ -61,7 +60,7 @@ def publish_to_pubsub():
 
         data_list = []
         for d in data:
-            data_list.append(json.dumps(d).encode("utf-8"))
+            data_list.append({"data": json.dumps(d).encode("utf-8")})
             if len(data_list) == batch_size:
                 hook.publish(
                     project_id='olist-data-engineering',
