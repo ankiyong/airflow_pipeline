@@ -23,7 +23,7 @@ spec:
   volumes:
     - name: spark-jobs
       hostPath:
-        path: /root/pvc/spark/jobs
+        path: /root/git/data_streaming/spark-jobs
     - name: data
       hostPath:
         path: /root/pvc/spark/data
