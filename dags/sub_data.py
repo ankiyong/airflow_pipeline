@@ -23,7 +23,7 @@ def spark_and_gcs_dag():
         if not os.path.exists(last_value_path):
             publish_val = "2000-01-01 00:00:00.000"
             with open(last_value_path, "w", encoding="utf-8") as f:
-                f.write(last_value_path)
+                f.write(publish_val)
         else:
             with open(last_value_path, "r", encoding="utf-8") as f:
                 publish_val = f.read().strip()
