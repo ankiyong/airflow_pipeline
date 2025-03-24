@@ -35,7 +35,7 @@ def spark_and_gcs_dag():
     # Postgres에서 publish_value 이후 데이터를 조회
     get_data = PostgresOperator(
         task_id="postgres_check",
-        postgres_conn_id="olist_postgres_conn",
+        postgres_conn_id="postgres-conn",
         trigger_rule="all_success",
         parameters={"publish_last_value": "{{ ti.xcom_pull(task_ids='publish_last_value') }}"},
         sql="""
@@ -61,7 +61,7 @@ def spark_and_gcs_dag():
         retries=3,
         application_file="olist_spark.yaml",
         namespace="default",
-        kubernetes_conn_id="kubernetes-conn-default",
+        kubernetes_conn_id="kubernetes-conn",
         do_xcom_push=False,
     )
 

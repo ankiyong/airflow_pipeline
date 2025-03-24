@@ -23,9 +23,9 @@ def write_last_value(last_value: Path,value: str):
 
 
 def main():
-    source_file = "/opt/spark/data/postgresql-42.7.5.jar"
-    target_dir = "/opt/spark/jars/postgresql-42.7.5.jar"
-    shutil.copy(source_file, target_dir) #jar file 복사
+    # source_file = "/opt/spark/data/postgresql-42.7.5.jar"
+    # target_dir = "/opt/spark/jars/postgresql-42.7.5.jar"
+    # shutil.copy(source_file, target_dir) #jar file 복사
 
     last_value_file_path = "/opt/spark/data/publish_last_value.txt"
     spark = (
@@ -38,9 +38,10 @@ def main():
         .config("spark.hadoop.google.cloud.auth.service.account.json.keyfile", "/opt/spark/data/key.json")
         .config("spark.jars.packages", "com.google.cloud.spark:spark-bigquery-with-dependencies_2.12:0.33.0") \
         .config("temporaryGcsBucket", "olist_archive") \
-        .config("spark.driver.extraClassPath", "/opt/spark/data/postgresql-42.7.5.jar") \
         .getOrCreate()
         )
+    
+        # .config("spark.driver.extraClassPath", "/opt/spark/data/postgresql-42.7.5.jar") \
 
     publish_last_value = get_last_value(last_value_file_path) #last value 가져오기
     sql = f"""
