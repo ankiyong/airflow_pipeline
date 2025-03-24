@@ -71,6 +71,7 @@ def publish_to_pubsub():
             # ordering_key = msg['message']['ordering_key']
             # load_timestamp = datetime.now()
             print(decoded_data)
+            return decoded_data
 
 
     publish_task = PythonOperator(
