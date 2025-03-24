@@ -1,0 +1,3 @@
+resources:
+  - log_pv.yaml
+  - log_pvc.yaml

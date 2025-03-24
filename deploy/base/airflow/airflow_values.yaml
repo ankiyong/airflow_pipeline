@@ -3,7 +3,7 @@ executor: "KubernetesExecutor"
 logs:
   persistence:
     enabled: true
-    existingClaim: airflow-log-pvc
+    existingClaim: airflow-log
 dags:
   gitSync:
     enabled: true

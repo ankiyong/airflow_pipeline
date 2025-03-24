@@ -1,0 +1,11 @@
+service:
+  enabled: true
+  annotations: {}
+  labels: {}
+  clusterIP: ""
+  externalIPs: []
+  loadBalancerIP: ""
+  loadBalancerSourceRanges: []
+  servicePort: 80
+  sessionAffinity: None
+  type: NodePort 

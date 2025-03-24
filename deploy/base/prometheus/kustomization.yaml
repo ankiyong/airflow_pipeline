@@ -1,0 +1,13 @@
+helmCharts:
+  - name: 
+    repo: https://prometheus-community.github.io
+    version: 27.6.0
+    releaseName: prometheus
+    namespace: monitoring
+    valuesFile: prometheus_values.yaml
+  - name: grafana
+    repo: https://grafana.github.io
+    version: 8.10.4
+    releaseName: grafana
+    namespace: monitoring
+    valuesFile: grafana_values.yaml

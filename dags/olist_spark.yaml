@@ -16,17 +16,17 @@ spec:
   timeToLiveSeconds: 60
   type: Python
   mode: cluster
-  image: localhost:5000/spark:1.3
+  image: pop2413/spark:1.3
   imagePullPolicy: IfNotPresent
   mainApplicationFile: local:///opt/spark/jobs/read_json.py
   sparkVersion: 3.5.3
   volumes:
     - name: spark-jobs
       hostPath:
-        path: /home/aky/projects/olist/spark-jobs
+        path: /root/pvc/spark/jobs
     - name: data
       hostPath:
-        path: /home/aky/data
+        path: /root/pvc/spark/data
   driver:
     labels:
       version: 3.5.3
