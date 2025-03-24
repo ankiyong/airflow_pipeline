@@ -67,11 +67,54 @@ def publish_to_pubsub():
         for msg in messages:
             encoded_data = json.loads(base64.b64decode(msg['message']['data']).decode('utf-8'))
             decoded_data = {key: convert_empty_string_to_null(value) for key, value in encoded_data.items()}
-            # ack_id = msg['ack_id']
-            # ordering_key = msg['message']['ordering_key']
-            # load_timestamp = datetime.now()
-            print(decoded_data)
-            return decoded_data
+            ack_id = msg['ack_id']
+            publish_time = msg['message']['publish_time']
+            ordering_key = msg['message']['ordering_key']
+            load_timestamp = datetime.now()
+            insert_data = PostgresOperator(
+                task_id="postgres_insert",
+                postgres_conn_id="postgres-conn",
+                sql = """
+                    INSERT INTO pubsub.olist_pubsub (
+                        ack_id,timestamp,log_time,
+                        order_id, customer_id, order_status, order_purchase_timestamp,
+                        order_approved_at, order_delivered_carrier_date, order_delivered_customer_date,
+                        order_estimated_delivery_date, payment_sequential, payment_type,
+                        payment_installments, payment_value, order_item_id, product_id, seller_ids,
+                        shipping_limit_date, price, freight_value,
+                        publish_time, ordering_key
+                    ) VALUES (
+                        %s,%s,%s,%s, %s, %s, %s,%s, %s, %s,%s, %s, %s,%s, %s, %s, %s, %s,%s, %s, %s,%s, %s
+                    )
+                    ON CONFLICT DO NOTHING;
+                    """,
+                parameters = (
+                    ack_id,load_timestamp,
+                    decoded_data.get("log_time", None),
+                    decoded_data.get("order_id", None),
+                    decoded_data.get("customer_id", None),
+                    decoded_data.get("order_status", None),
+                    decoded_data.get("order_purchase_timestamp", None),
+                    decoded_data.get("order_approved_at", None),
+                    decoded_data.get("order_delivered_carrier_date", None),
+                    decoded_data.get("order_delivered_customer_date", None),
+                    decoded_data.get("order_estimated_delivery_date", None),
+                    decoded_data.get("payment_sequential", None),
+                    decoded_data.get("payment_type", None),
+                    decoded_data.get("payment_installments", None),
+                    decoded_data.get("payment_value", None),
+                    decoded_data.get("order_item_id", None),
+                    decoded_data.get("product_id", None),
+                    json.dumps(decoded_data.get("seller_ids", None)),
+                    decoded_data.get("shipping_limit_date", None),
+                    decoded_data.get("price", None),
+                    decoded_data.get("freight_value", None),
+                    publish_time,
+                    ordering_key
+                )
+            )
+            insert_data.execute(context={})
+            
 
 
     publish_task = PythonOperator(
