@@ -59,67 +59,18 @@ def publish_to_pubsub():
         if isinstance(data, str) and data == '':
             return None
         return data
-    # def save_to_postgres(ti):
-    #     messages = ti.xcom_pull(task_ids="subscribe_message")
-    #     if not messages:
-    #         logger.info("메시지가 존재하지 않습니다.")
-    #         return
-    #     for msg in messages:
-    #         encoded_data = json.loads(base64.b64decode(msg['message']['data']).decode('utf-8'))
-    #         decoded_data = {key: convert_empty_string_to_null(value) for key, value in encoded_data.items()}
-    #         ack_id = msg['ack_id']
-    #         delivery_attempt = msg['delivery_attempt']
-    #         publish_time = msg['message']['publish_time']
-    #         ordering_key = msg['message']['ordering_key']
-    #         load_timestamp = datetime.now()
-    #         insert_data = PostgresOperator(
-    #             task_id="postgres_insert",
-    #             postgres_conn_id="olist_postgres_conn",
-    #             sql="""
-    #                 INSERT INTO pubsub.olist_pubsub (
-    #                     ack_id, delivery_attempt, timestamp,
-    #                     order_id, customer_id, order_status, order_purchase_timestamp,
-    #                     order_approved_at, order_delivered_carrier_date, order_delivered_customer_date,
-    #                     order_estimated_delivery_date, payment_sequential, payment_type,
-    #                     payment_installments, payment_value, order_item_id, product_id, seller_id,
-    #                     shipping_limit_date, price, freight_value,
-    #                     publish_time, ordering_key
-    #                 ) VALUES (
-    #                     %s, %s, %s,
-    #                     %s, %s, %s, %s,
-    #                     %s, %s, %s,
-    #                     %s, %s, %s,
-    #                     %s, %s, %s, %s, %s,
-    #                     %s, %s, %s,
-    #                     %s, %s
-    #                 )
-    #                 ON CONFLICT DO NOTHING;
-    #             """,
-    #             parameters=(
-    #                 ack_id, delivery_attempt, load_timestamp,
-    #                 decoded_data.get("order_id", None),
-    #                 decoded_data.get("customer_id", None),
-    #                 decoded_data.get("order_status", None),
-    #                 decoded_data.get("order_purchase_timestamp", None),
-    #                 decoded_data.get("order_approved_at", None),
-    #                 decoded_data.get("order_delivered_carrier_date", None),  # NULL 처리됨
-    #                 decoded_data.get("order_delivered_customer_date", None),  # NULL 처리됨
-    #                 decoded_data.get("order_estimated_delivery_date", None),  # NULL 처리됨
-    #                 decoded_data.get("payment_sequential", None),
-    #                 decoded_data.get("payment_type", None),
-    #                 decoded_data.get("payment_installments", None),
-    #                 decoded_data.get("payment_value", None),
-    #                 decoded_data.get("order_item_id", None),
-    #                 decoded_data.get("product_id", None),
-    #                 decoded_data.get("seller_id", None),
-    #                 decoded_data.get("shipping_limit_date", None),
-    #                 decoded_data.get("price", None),
-    #                 decoded_data.get("freight_value", None),
-    #                 publish_time,
-    #                 ordering_key
-    #             ),
-    #         )
-    #         insert_data.execute(context={})
+    def save_to_postgres(ti):
+        messages = ti.xcom_pull(task_ids="subscribe_message")
+        if not messages:
+            logger.info("메시지가 존재하지 않습니다.")
+            return
+        for msg in messages:
+            encoded_data = json.loads(base64.b64decode(msg['message']['data']).decode('utf-8'))
+            decoded_data = {key: convert_empty_string_to_null(value) for key, value in encoded_data.items()}
+            # ack_id = msg['ack_id']
+            # ordering_key = msg['message']['ordering_key']
+            # load_timestamp = datetime.now()
+            print(decoded_data)
 
 
     publish_task = PythonOperator(
@@ -136,11 +87,11 @@ def publish_to_pubsub():
         gcp_conn_id="google-cloud",
     )
 
-    # postgres_task = PythonOperator(
-    #     task_id = "save_to_postgres",
-    #     python_callable = save_to_postgres,
-    #     provide_context = True
-    # )
+    postgres_task = PythonOperator(
+        task_id = "save_to_postgres",
+        python_callable = save_to_postgres,
+        provide_context = True
+    )
     # trigger_next_run = TriggerDagRunOperator(
     #     task_id="trigger_next_run",
     #     trigger_dag_id="publish_to_pubsub",
@@ -150,5 +101,5 @@ def publish_to_pubsub():
 
     data = get_order_data_after_last_value()
     # data >> publish_task >> subscribe_task >> postgres_task >> trigger_next_run
-    data >> publish_task >> subscribe_task
+    data >> publish_task >> subscribe_task >> postgres_task
 publish_to_pubsub_dag = publish_to_pubsub()
