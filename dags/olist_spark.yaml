@@ -16,7 +16,7 @@ spec:
   timeToLiveSeconds: 60
   type: Python
   mode: cluster
-  image: pop2413/spark:1.5
+  image: pop2413/spark:1.6
   imagePullPolicy: IfNotPresent
   # imagePullSecrets:
   #   - name: docker-hub
