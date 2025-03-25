@@ -23,18 +23,18 @@ spec:
   mainApplicationFile: local:///opt/spark/jobs/read_json.py
   sparkVersion: 3.5.3
   volumes:
-    - name: spark-data
-      persistentVolumeClaim:
-        claimName: spark-data
-    - name: spark-jobs
-      persistentVolumeClaim:
-        claimName: spark-jobs
+    # - name: spark-data
+    #   persistentVolumeClaim:
+    #     claimName: spark-data
     # - name: spark-jobs
-    #   hostPath:
-    #     path: /root/pvc/olist/spark/jobs
-    # - name: data
-    #   hostPath:
-    #     path: /root/pvc/olist/spark/data
+    #   persistentVolumeClaim:
+    #     claimName: spark-jobs
+    - name: spark-jobs
+      hostPath:
+        path: /root/pvc/olist/spark/jobs
+    - name: data
+      hostPath:
+        path: /root/pvc/olist/spark/data
   driver:
     labels:
       version: 3.5.3
