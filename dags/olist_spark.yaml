@@ -16,19 +16,25 @@ spec:
   timeToLiveSeconds: 60
   type: Python
   mode: cluster
-  image: pop2413/spark:1.6
+  image: pop2413/spark:1.5
   imagePullPolicy: IfNotPresent
   # imagePullSecrets:
   #   - name: docker-hub
   mainApplicationFile: local:///opt/spark/jobs/read_json.py
   sparkVersion: 3.5.3
   volumes:
+    - name: spark-data
+      persistentVolumeClaim:
+        claimName: spark-data
     - name: spark-jobs
-      hostPath:
-        path: /root/pvc/olist/spark/jobs
-    - name: data
-      hostPath:
-        path: /root/pvc/olist/spark/data
+      persistentVolumeClaim:
+        claimName: spark-jobs
+    # - name: spark-jobs
+    #   hostPath:
+    #     path: /root/pvc/olist/spark/jobs
+    # - name: data
+    #   hostPath:
+    #     path: /root/pvc/olist/spark/data
   driver:
     labels:
       version: 3.5.3
