@@ -6,28 +6,30 @@ from airflow.providers.postgres.operators.postgres import PostgresOperator
 from airflow.decorators import task, dag
 from airflow.providers.google.cloud.hooks.pubsub import PubSubHook
 from airflow.hooks.postgres_hook import PostgresHook
+from airflow.models import Variable
 import requests,json,base64,logging
 from datetime import datetime
 import os
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-last_value_path = "/opt/airflow/logs/last_value.txt"
+LAST_VALUE = Variable.get("LAST_VALUE_PATH")
+DB_HOST = Variable.get("DB_HOST")
 @dag(schedule_interval=None,start_date= datetime.now(),catchup=False)
 def publish_to_pubsub():
     @task
     def get_order_data_after_last_value() -> list:
-        if not os.path.exists(last_value_path):
-            with open(last_value_path, "w", encoding="utf-8") as file:
+        if not os.path.exists(LAST_VALUE):
+            with open(LAST_VALUE, "w", encoding="utf-8") as file:
                 file.write("2000-01-01 00:00:00")
                 last_value = datetime.strptime("2000-01-01 00:00:00", '%Y-%m-%d %H:%M:%S')
         else:
-            with open(last_value_path,encoding="utf-8") as file:
+            with open(LAST_VALUE,encoding="utf-8") as file:
                 last_value_str = file.read().strip()
                 last_value = datetime.strptime(last_value_str, '%Y-%m-%d %H:%M:%S')
 
-        url = f"http://192.168.56.40:8000/orders/id/{int(last_value.timestamp())}"
-        with open(last_value_path, "w", encoding="utf-8") as file:
+        url = f"{DB_HOST}/orders/id/{int(last_value.timestamp())}"
+        with open(LAST_VALUE, "w", encoding="utf-8") as file:
             file.write(last_value.strftime('%Y-%m-%d %H:%M:%S'))
 
         try:
@@ -43,14 +45,14 @@ def publish_to_pubsub():
     
     @task
     def write_last_value():
-        url = "http://192.168.56.40:8000/orders/latest"
+        url = f"{DB_HOST}/orders/latest"
         try:
             response = requests.get(url)
             response.raise_for_status()
             latest_log_time = response.json().get("log_time")
             if latest_log_time:
                 logger.info(f"Updating last value to: {latest_log_time}")
-                with open(last_value_path, "w", encoding="utf-8") as file:
+                with open(LAST_VALUE, "w", encoding="utf-8") as file:
                     file.write(latest_log_time)
             else:
                 logger.warning("Response에 최신 log_time이 없습니다.")

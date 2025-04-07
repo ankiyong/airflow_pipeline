@@ -7,13 +7,13 @@ controller:
   - name: spark-jobs
     hostPath:
       type: Directory
-      path: /root/pvc/spark/jobs
+      path: /root/pvc/olist/spark/jobs
   volumeMounts:
   - name: tmp
-    mountPath: "/tmp"
+    mountPath: /tmp
     readOnly: false
   - name: spark-jobs
-    mountPath: "/opt/spark/jobs"
+    mountPath: /opt/spark/jobs
 webhook:
   enabled: true
 namespace:

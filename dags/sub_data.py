@@ -8,24 +8,24 @@ from airflow.providers.postgres.operators.postgres import PostgresOperator
 from airflow.hooks.postgres_hook import PostgresHook
 from airflow.operators.python import BranchPythonOperator
 from airflow.operators.dummy import DummyOperator
+from airflow.models import Variable
 from datetime import datetime, timedelta
 import os,logging
 
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-last_value_path = "/opt/airflow/logs/publish_last_value.txt"
-
+LAST_VALUE = Variable.get("LAST_VALUE_PATH")
 @dag(schedule_interval="*/5 * * * *",start_date=datetime.now(),catchup=False)
 def spark_and_gcs_dag():
     @task
     def publish_last_value() -> str:
-        if not os.path.exists(last_value_path):
+        if not os.path.exists(LAST_VALUE):
             publish_val = "2000-01-01 00:00:00.000"
-            with open(last_value_path, "w", encoding="utf-8") as f:
+            with open(LAST_VALUE, "w", encoding="utf-8") as f:
                 f.write(publish_val)
         else:
-            with open(last_value_path, "r", encoding="utf-8") as f:
+            with open(LAST_VALUE, "r", encoding="utf-8") as f:
                 publish_val = f.read().strip()
         return publish_val
 
@@ -70,7 +70,7 @@ def spark_and_gcs_dag():
         task_id="end_task"
     )
 
-    # 분기 후 합류를 위한 DummyOperator (필요 시 사용)
+    # 분기 후 합류를 위한 DummyOperator
     merge = DummyOperator(
         task_id="merge",
         trigger_rule="none_failed_or_skipped"
