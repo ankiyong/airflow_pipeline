@@ -3,8 +3,7 @@ name: Sync DAG to Airflow
 on:
   push:
     paths:
-      - 'dag/**'  # dag 폴더의 변경 감지
-
+      - 'dags/**'
 jobs:
   sync-dag:
     runs-on: ubuntu-latest
