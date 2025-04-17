@@ -1,0 +1,37 @@
+name: Sync DAG to Airflow
+
+on:
+  push:
+    paths:
+      - 'dag/**'  # dag 폴더의 변경 감지
+
+jobs:
+  sync-dag:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout current repo (olist)
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 1
+
+    - name: Clone airflow_dag repo
+      uses: actions/checkout@v3
+      with:
+        repository: ankiyong/airflow_dag
+        token: ${{ secrets.TOKEN }}
+        path: airflow_dag
+
+    - name: Copy DAGs to airflow_dag
+      run: |
+        mkdir -p airflow_dag/dags/olist
+        cp -r dags/* airflow_dag/dags/olist/
+
+    - name: Commit and push to airflow_dag
+      run: |
+        cd airflow_dag
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git add dags/olist
+        git commit -m "Sync DAGs from olist ($(date +'%Y-%m-%d %H:%M:%S'))" || echo "No changes to commit"
+        git push origin main
