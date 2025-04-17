@@ -7,7 +7,7 @@ logs:
 dags:
   gitSync:
     enabled: true
-    repo: https://github.com/ankiyong/data_streaming.git
+    repo: https://github.com/ankiyong/airflow_dag.git
     branch: main
     rev: HEAD
     depth: 1
@@ -15,6 +15,6 @@ dags:
     subPath: "dags"
     period: 5s
     credentialsSecret: git-credentials
-    sshKeySecret: airflow-git-ssh-secret
+    sshKeySecret: airflow-ssh-secret
     containerName: git-sync
     uid: 65533

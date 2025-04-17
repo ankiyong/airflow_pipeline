@@ -13,8 +13,8 @@ import os
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-LAST_VALUE = Variable.get("LAST_VALUE_PATH")
-DB_HOST = Variable.get("DB_HOST")
+LAST_VALUE = "test"
+DB_HOST = "test"
 @dag(schedule_interval=None,start_date= datetime.now(),catchup=False)
 def publish_to_pubsub():
     @task

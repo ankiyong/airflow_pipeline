@@ -15,7 +15,7 @@ import os,logging
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-LAST_VALUE = Variable.get("LAST_VALUE_PATH")
+LAST_VALUE = "test"
 @dag(schedule_interval="*/5 * * * *",start_date=datetime.now(),catchup=False)
 def spark_and_gcs_dag():
     @task
