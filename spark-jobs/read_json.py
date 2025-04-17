@@ -1,34 +1,45 @@
-from pyspark.sql import SparkSession,functions as F
-from pyspark.sql.types import DecimalType
-import json,os,shutil,time
-from pyspark.sql.functions import col,to_timestamp,unix_timestamp,floor
+from __future__ import annotations
+
+import logging
+from datetime import datetime
 from functools import reduce
 from pathlib import Path
-from dotenv import load_dotenv
-from datetime import datetime
 
-def get_last_value(file_path: Path) -> str:
-    if not os.path.exists(file_path):
-        publish_last_value = "2000-01-01 00:00:00.000"
-        f = open(file_path,'w')
-        f.write("2000-01-01 00:00:00.000") #최초 값 세팅
-    else:
-        f = open(file_path,'r')
-        publish_last_value = f.read()
-    return publish_last_value
+from pyspark.sql import SparkSession, DataFrame, functions as F
+from pyspark.sql.functions import col, floor, to_timestamp, unix_timestamp
+from pyspark.sql.types import DecimalType
 
-def write_last_value(last_value: Path,value: str):
-    f = open(last_value,'w')
-    f.write(value)
+LAST_VALUE_FPATH = Path("/opt/spark/data/publish_last_value.txt")
+POSTGRES_JDBC_URL = "jdbc:postgresql://192.168.28.3:5431/postgres"
+BIGQUERY_TABLE = "olist_dataset.olist_orders"
+GCS_BUCKET = "olist_data_buckets"
+PARQUET_PATH = f"gs://{GCS_BUCKET}/orders/orders.parquet"
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s: %(message)s",
+)
+LOGGER = logging.getLogger(__name__)
 
 
-def main():
-    # source_file = "/opt/spark/data/postgresql-42.7.5.jar"
-    # target_dir = "/opt/spark/jars/postgresql-42.7.5.jar"
-    # shutil.copy(source_file, target_dir) #jar file 복사
+def read_last_value(path: Path) -> datetime:
+    """마지막 처리 시각을 반환(없으면 초기값 생성)."""
+    if not path.exists():
+        default = "2000-01-01 00:00:00.000"
+        path.write_text(default)
+        return datetime.strptime(default, "%Y-%m-%d %H:%M:%S.%f")
 
-    last_value_file_path = "/opt/spark/data/publish_last_value.txt"
-    spark = (
+    raw = path.read_text().strip()
+    return datetime.strptime(raw, "%Y-%m-%d %H:%M:%S.%f")
+
+
+def write_last_value(path: Path, value: datetime) -> None:
+    """최신 처리 시각 저장."""
+    path.write_text(value.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3])
+
+
+def build_spark() -> SparkSession:
+    return (
         SparkSession.builder
         .appName("pyspark-gcs-connection")
         .master("local[*]")
@@ -36,61 +47,92 @@ def main():
         .config("spark.hadoop.fs.gs.impl", "com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem")
         .config("spark.hadoop.google.cloud.auth.service.account.enable", "true")
         .config("spark.hadoop.google.cloud.auth.service.account.json.keyfile", "/opt/spark/data/key.json")
-        .config("spark.jars.packages", "com.google.cloud.spark:spark-bigquery-with-dependencies_2.12:0.33.0") \
-        .config("temporaryGcsBucket", "olist_archive") \
+        .config("spark.jars.packages", "com.google.cloud.spark:spark-bigquery-with-dependencies_2.12:0.33.0")
+        .config("temporaryGcsBucket", "olist_archive")
         .getOrCreate()
-        )
-    
-        # .config("spark.driver.extraClassPath", "/opt/spark/data/postgresql-42.7.5.jar") \
+    )
 
-    publish_last_value = get_last_value(last_value_file_path) #last value 가져오기
-    sql = f"""
+
+def load_incremental(spark: SparkSession, since: datetime) -> DataFrame:
+    """PostgreSQL에서 *since* 이후 데이터만 읽어 옴."""
+    query = f"""
         SELECT *
         FROM pubsub.olist_pubsub
-        WHERE timestamp > TO_TIMESTAMP('{publish_last_value}', 'YYYY-MM-DD HH24:MI:SS.MS')
+        WHERE timestamp > TO_TIMESTAMP('{since}', 'YYYY-MM-DD HH24:MI:SS.MS')
         ORDER BY publish_time DESC
     """
-    df = spark.read.format("jdbc") \
-                .option("url", f"jdbc:postgresql://192.168.28.3:5431/postgres") \
-                .option("driver", "org.postgresql.Driver") \
-                .option("query", sql) \
-                .option("user", "postgres") \
-                .option("password", "postgres") \
-                .load()
-    if df.isEmpty():
-        print("Threr is no new data")
-        return
-    #새로운 last value 설정
-    new_last_value = df.first()["timestamp"]
-    publish_last_value = new_last_value.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
-    write_last_value(last_value_file_path,str(publish_last_value))
-
-    #데이터 정제
-    df = df.na.drop()
-    column_name = ["price","freight_value","payment_value"]
-    df = reduce(lambda df, col: df.withColumn(col, F.round(df[col], 2)), column_name, df)
-    df = df.withColumn("order_delivered_customer_date", to_timestamp(col("order_delivered_customer_date"))) \
-        .withColumn("order_purchase_timestamp", to_timestamp(col("order_purchase_timestamp"))) \
-        .withColumn("time_diff_seconds", unix_timestamp(col("order_delivered_customer_date")) - unix_timestamp(col("order_purchase_timestamp"))) \
-        .withColumn("delevery_time",floor(col("time_diff_seconds")/3600))
-    df = df.drop(
-        "id","order_estimated_delivery_date","order_approved_at",
-        "order_delivered_carrier_date","delivery_attempt","ordering_key","time_diff_seconds"
+    return (
+        spark.read.format("jdbc")
+        .option("url", POSTGRES_JDBC_URL)
+        .option("driver", "org.postgresql.Driver")
+        .option("query", query)
+        .option("user", "postgres")
+        .option("password", "postgres")
+        .load()
     )
-    decimal_columns = [field.name for field in df.schema.fields if isinstance(field.dataType, DecimalType)]
-    for col_name in decimal_columns:
-        df = df.withColumn(col_name, col(col_name).cast("double"))
-    # df.printSchema()
 
+
+def clean(df: DataFrame) -> DataFrame:
+    if df.rdd.isEmpty():
+        return df
+    for c in ("price", "freight_value", "payment_value"):
+        df = df.withColumn(c, F.round(col(c), 2))
+    df = (
+        df.withColumn("order_delivered_customer_date", to_timestamp(col("order_delivered_customer_date")))
+          .withColumn("order_purchase_timestamp", to_timestamp(col("order_purchase_timestamp")))
+          .withColumn(
+              "time_diff_seconds",
+              unix_timestamp(col("order_delivered_customer_date")) - unix_timestamp(col("order_purchase_timestamp")),
+          )
+          .withColumn("delivery_time", floor(col("time_diff_seconds") / 3600))
+    )
+    df = df.drop(
+        "id",
+        "order_estimated_delivery_date",
+        "order_approved_at",
+        "order_delivered_carrier_date",
+        "delivery_attempt",
+        "ordering_key",
+        "time_diff_seconds",
+    )
+    dec_cols = [f.name for f in df.schema.fields if isinstance(f.dataType, DecimalType)]
+    for c in dec_cols:
+        df = df.withColumn(c, col(c).cast("double"))
+
+    return df.na.drop()
+
+
+def write_outputs(df: DataFrame) -> None:
     df.write.format("bigquery") \
-        .option("parentProject","olist-data-engineering") \
-        .option("table", "olist_dataset.olist_orders") \
+        .option("parentProject", "olist-data-engineering") \
+        .option("table", BIGQUERY_TABLE) \
         .option("writeMethod", "direct") \
         .mode("append") \
         .save()
-    gcs_bucket = "olist_data_buckets"
-    parquet_path = f"gs://{gcs_bucket}/orders/orders.parquet"
-    df.write.mode("append").format("parquet").save(parquet_path)
+
+    df.write.mode("append").parquet(PARQUET_PATH)
+    LOGGER.info("BigQuery & GCS 저장 완료")
+
+
+# ──────────────────────────────
+# 엔트리 포인트
+# ──────────────────────────────
+def main() -> None:
+    last_ts = read_last_value(LAST_VALUE_FPATH)
+    spark = build_spark()
+
+    df = load_incremental(spark, last_ts)
+    if df.rdd.isEmpty():
+        LOGGER.info("새로운 데이터가 없습니다.")
+        return
+
+    # 최신 타임스탬프 저장
+    write_last_value(LAST_VALUE_FPATH, df.first()["timestamp"])
+
+    processed = clean(df)
+    write_outputs(processed)
+    LOGGER.info("파이프라인 완료")
+
 
 if __name__ == "__main__":
     main()
