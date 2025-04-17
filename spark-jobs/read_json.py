@@ -23,7 +23,6 @@ LOGGER = logging.getLogger(__name__)
 
 
 def read_last_value(path: Path) -> datetime:
-    """마지막 처리 시각을 반환(없으면 초기값 생성)."""
     if not path.exists():
         default = "2000-01-01 00:00:00.000"
         path.write_text(default)
