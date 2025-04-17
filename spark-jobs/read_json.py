@@ -33,7 +33,6 @@ def read_last_value(path: Path) -> datetime:
 
 
 def write_last_value(path: Path, value: datetime) -> None:
-    """최신 처리 시각 저장."""
     path.write_text(value.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3])
 
 
@@ -53,7 +52,6 @@ def build_spark() -> SparkSession:
 
 
 def load_incremental(spark: SparkSession, since: datetime) -> DataFrame:
-    """PostgreSQL에서 *since* 이후 데이터만 읽어 옴."""
     query = f"""
         SELECT *
         FROM pubsub.olist_pubsub
@@ -113,9 +111,6 @@ def write_outputs(df: DataFrame) -> None:
     LOGGER.info("BigQuery & GCS 저장 완료")
 
 
-# ──────────────────────────────
-# 엔트리 포인트
-# ──────────────────────────────
 def main() -> None:
     last_ts = read_last_value(LAST_VALUE_FPATH)
     spark = build_spark()
@@ -124,8 +119,6 @@ def main() -> None:
     if df.rdd.isEmpty():
         LOGGER.info("새로운 데이터가 없습니다.")
         return
-
-    # 최신 타임스탬프 저장
     write_last_value(LAST_VALUE_FPATH, df.first()["timestamp"])
 
     processed = clean(df)
